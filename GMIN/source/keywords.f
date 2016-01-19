@@ -35,6 +35,7 @@
       USE modamber
       USE PORFUNCS
       USE MYGA_PARAMS
+      USE ANT_MODULE
       USE BGUPMOD
       USE GLJYMOD
       USE CHIRO_MODULE, ONLY: CHIRO_SIGMA, CHIRO_MU, CHIRO_GAMMA, CHIRO_L
@@ -953,6 +954,7 @@
       PERCOLATET=.FALSE.
       PERCCUT=1.0D100
       GENALT=.FALSE.
+      ACOT=.FALSE.
 !
 ! Reservoir list parameters for PT / BSPT.
 !
@@ -3386,6 +3388,29 @@ c
 !
       ELSE IF (WORD.EQ.'GATWIN') THEN
          MYGA_TWIN=.TRUE.
+!
+! Ant colony optimisation with LamarckiAnt
+! (re-uses some of the variables from the GA)
+!
+      ELSE IF (WORD.EQ.'ANTALGORITHM') THEN
+         CALL READI(MYGA_NSTRUC) !Number of ants
+         CALL READI(MYGA_GENS)   !Number of generations
+         ACOT=.TRUE.
+      ELSE IF (WORD.EQ.'ANTGAMMA') THEN
+         CALL READF(ANT_GAMMA)
+      ELSE IF (WORD.EQ.'ANTTRAILWIDTH') THEN
+         IF (NITEMS.GT.2) THEN
+            CALL READF(ANT_TRAIL_WIDTH)
+            CALL READA(WORD2)
+            WORD2=TRIM(ADJUSTL(WORD2))
+            IF (WORD2.EQ."DEG") THEN
+               ANT_TRAIL_WIDTH=ANT_TRAIL_WIDTH*0.0174533
+            ENDIF
+         ENDIF
+      ELSE IF (WORD.EQ.'ANTTRAILPERS') THEN
+         CALL READF(ANT_TRAIL_PERSISTENCE)
+      ELSE IF (WORD.EQ.'ANTVISIBILITY') THEN
+         CALL READF(ANT_BETA)
 !
 ! NOT DOCUMENTED
 !

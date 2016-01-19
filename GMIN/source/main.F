@@ -557,6 +557,11 @@ C
          NRUNS=0
          CALL MYGA_RUN()
       ENDIF
+! LamarckiAnt
+      IF (ACOT) THEN
+         NRUNS=0
+         CALL ANT_ALGORITHM()
+      ENDIF
 !ds656> Span label permutations
       IF (MULTIPERMT) THEN
          NRUNS=0

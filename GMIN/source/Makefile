@@ -81,7 +81,7 @@ OBJS2 =	centre.o genrigid.o rotations.o finalio.o modconsts_trans_97.o modconsts
 	tryexchange_independence.o dprand_universal.o dlsode.o ttm3f.o restraindistance.o mW_wrapper.o mindist.o \
 	bspt_utils.o selectmove.o CSMinit.o Gthomson.o percsphere.o ellipticintegral.o reservoir_utils.o biased_torsional_sampling.o random_normal.o \
 	dftbC.o detsym.o symutils.o ljgh.o morsegh.o GLJ.o phi4model.o dihedralrotation.o parse_pot_params.o inertia.o mlowest.o qcipot.o \
-   make_conpot.o congrad.o intlbfgs.o
+   make_conpot.o congrad.o intlbfgs.o ant_colony.o
 
 
 GMIN_DIR = ${SVN_ROOT}/GMIN/source
@@ -575,7 +575,7 @@ hmat1n.o:      commons.o
 hmatd_.o:      commons.o
 hsmove.o:      commons.o
 io1.o:         commons.o modamb.o modperm.o qmod.o modcharmm.o porfuncs.o BGupta.o sandbox.o py.o
-keywords.o:    commons.o modamb.o modcharmm.o porfuncs.o ga_modules.o BGupta.o glj_yukawa.o chiro.o sandbox.o restraindistance.o polirmod.o swmod.o chirality.o mbpol.o parse_pot_params.o ${AMB12DUM} twist.o rotamer_move.o
+keywords.o:    commons.o modamb.o modcharmm.o porfuncs.o ga_modules.o ant_colony.o BGupta.o glj_yukawa.o chiro.o sandbox.o restraindistance.o polirmod.o swmod.o chirality.o mbpol.o parse_pot_params.o ${AMB12DUM} twist.o rotamer_move.o
 linmin.o:      commons.o modf1com.o
 linrod.o:      commons.o
 ljcoulomb.o:   commons.o
@@ -704,6 +704,7 @@ ga_main.o: ga_modules.o commons.o
 ga_select: ga_modules.o commons.o
 ga_bln.o: ga_modules.o commons.o
 ga_cluster.o: ga_modules.o commons.o
+ant_colony.o: ga_modules.o
 tryexchange.f90: tryexchange.F90
 tryexchange.o: commons.o tryexchange.f90 tryexchange.F90 tryexchange_independence.o reservoir_utils.o
 tryexchange_independence.f90: tryexchange_independence.F90
