@@ -270,7 +270,7 @@ endif
 #
 # GMIN + CHARMM35 - tested with the options which contain "##" in front 
 # 
- FC = ifort
+# FC = ifort
 # FC = mpif77 
 # FC = mpif90  
 # DEFS = -DMPI 
@@ -283,40 +283,40 @@ endif
 #      -O0 -traceback -debug full -check uninit -stand f03 -assume realloc_lhs -check all,noarg_temp_created \
 #      -traceback -warn all -fstack-protector -assume protect_parens -implicitnone
 ##### ifort optimization flags
- FFLAGS= -132 -O3
+# FFLAGS= -132 -O3
 # FFLAGS= -132 -Vaxlib -O3 # for ifc
 # FFLAGS= -132 -O3 -ip -static # -ipo or -fast doesnt work 
 # FFLAGS= -132 -O4
 ## FFLAGS= -O2 -extend_source -g -traceback
- NOOPT= -132 -O0
- SWITCH=ifort
- SEARCH_PATH= -I.
- SEARCH_PATH= -I..
- LDFLAGS= -L. -lstdc++
- LIBS = libmyblas.a libmylapack.a libmyblas.a  
- FREEFORMAT_FLAG= -free
- EXTRA_FLAGS=-I
- MOD_LOCATION= -module $(@D)
+# NOOPT= -132 -O0
+# SWITCH=ifort
+# SEARCH_PATH= -I.
+# SEARCH_PATH= -I..
+# LDFLAGS= -L. -lstdc++
+# LIBS = libmyblas.a libmylapack.a libmyblas.a  
+# FREEFORMAT_FLAG= -free
+# EXTRA_FLAGS=-I
+# MOD_LOCATION= -module $(@D)
 #
 # End of intel compilers 
 ## Gfortran  
 #
-# FC = gfortran
+ FC = gfortran
 # FC = mpif90
 # DEFS = -DMPI
 #DEFS = -DCUDA		# CUDAGMIN compiled with the Makefile currently cannot be used with AMBER - in the meantime use CMake
-# FFLAGS= -ffixed-line-length-265 -O3 -ffree-line-length-0
+ FFLAGS= -ffixed-line-length-265 -O3 -ffree-line-length-0
 # FFLAGS= -ffixed-line-length-132 -O3 -ftree-vectorize -ffree-line-length-0
 # FFLAGS= -ffixed-line-length-132 -g -fbounds-check -Wuninitialized -O -ftrapv -ffree-line-length-0
 # FFLAGS= -ffixed-line-length-132 -g -fbounds-check -Wuninitialized -O -ftrapv -fimplicit-none -fno-automatic -ffree-line-length-0
-# NOOPT= -O0 -ffixed-line-length-132
-# SWITCH=gfortran
-# SEARCH_PATH =  -I..
-# LIBS = libmylapack.a libmyblas.a
-# LDFLAGS = -LBLAS -LLAPACK
-# LDFLAGS = -L. -lstdc++
-# FREEFORMAT_FLAG= -ffree-form
-# EXTRA_FLAGS=-I
+ NOOPT= -O0 -ffixed-line-length-132
+ SWITCH=gfortran
+ SEARCH_PATH =  -I..
+ LIBS = libmylapack.a libmyblas.a
+ LDFLAGS = -LBLAS -LLAPACK
+ LDFLAGS = -L. -lstdc++
+ FREEFORMAT_FLAG= -ffree-form
+ EXTRA_FLAGS=-I
 #
 #  End Gfortran 
 # 
