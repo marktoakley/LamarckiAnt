@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# ps2pdf options taken from http://www.cs.toronto.edu/~dross/latex/
+
+export ps2pdf_opts="-dOptimize=true -dUseFlateCompression=true \
+	       -dMaxSubsetPct=100 -dCompatibilityLevel=1.2 \
+		-dSubsetFonts=true -dEmbedAllFonts=true \
+		-dAutoFilterColorImages=false \
+		-dAutoFilterGrayImages=false \
+		-dColorImageFilter=/FlateEncode \
+		-dGrayImageFilter=/FlateEncode \
+		-dModoImageFilter=/FlateEncode "	
+
+export dvips_opts="-Pamz -Pcmz"
+
+mode="full"
+
+dvitops(){
+
+  dvips -o $1.ps $dvips_opts $1.dvi
+
+}
+
+dvitopdf(){
+		
+dvips $dvips_opts -o  $1.ps $1.dvi
+ps2pdf $ps2pdf_opts $1.ps $1.pdf
+
+}
+
+dojob(){ # {{{
+
+case "$1" in
+  	"full") # main (full cycle) mode: {{{ 
+		latex $n
+		makeglossaries $n
+		bibtex $n
+		latex $n
+		latex $n
+		dvitopdf $n
+	;;
+	# }}}
+	"gls") makeglossaries $n ;;
+	"simple") # simple latex-to-pdf {{{
+		latex $n
+		dvitopdf $n
+	;; # }}}
+	"convert") # convert dvi to pdf {{{
+		dvitopdf $n
+	;; # }}}
+esac
+
+} # }}}
+
+if [ -z "$1" ]
+ 	then
+		#cat "$hm/scripts/ltm-help.txt"
+cat << EOF
+=============================================================
+SCRIPT NAME: ltm
+USAGE: ltm [options] [  latex filename (without extension) ]
+OPTIONS:
+	-f 	full latex cycle (set by default)
+	-s	single latex + pdf generation
+	-c	convert dvi to pdf
+	-g	run "makeglossaries" command only
+=============================================================
+EOF
+	else 
+while [ ! -z "$1" ]
+	do
+	  case "$1" in
+	    "-f") mode="full" ;;
+	    "-s") mode="simple" ;;
+	    "-c") mode="convert" ;;
+	    "-g") mode="gls" ;;
+	    *) 
+	    	n=${1%.tex} 
+	      dojob $mode 
+		;;
+	  esac
+	  shift
+done
+
+fi
+

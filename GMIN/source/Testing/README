@@ -1,0 +1,81 @@
+CMAKE Tests
+===========
+
+<<<<<<<<<<<<<<<<<<<< compiling and running tests >>>>>>>>>>>>>>>>>>>>
+
+This requires a fairly modern version of cmake, and unfortunately version 2.6
+which is installed on our machines is too old.  For installation instructions, see
+http://www.cmake.org/cmake/help/install.html
+
+Once cmake is installed, from the cmake build directory
+
+1. Build tests 
+   Build with WITH_TESTING to ON (using ccmake GUI or -DWITH_TESTING=yes, see header in GMIN/source/CMakeLists.txt)   
+
+2. Run tests 
+   $ make test 
+
+This tell cmake to run all the tests that have been implemented and report the
+ones that fail.
+
+<<<<<<<<<<<<<<<<<<<< setting up a new test >>>>>>>>>>>>>>>>>>>>
+
+There is a lot of freedom here to decide what type of test to run, and how to
+implement it.  The simplest test to implement is probably a "system test,"
+where you provide the input files for a short GMIN run and test the energy at
+the end (see example 2).  These are useful, but not ideal because if something
+goes wrong, you have no idea why.  A more rigorous method is a "unit test,"
+where you only test a single subroutine or function.
+
+The one thing that's necessary for each test is
+
+1. Make a directory in Testing/ to house your test
+   $ mkdir GMIN/source/Testing/mytest  
+
+2. Tell cmake about your test
+   edit GMIN/source/Testing/mytest/CMakeLists.txt
+
+For examples of what CMakeLists.txt can look like see the examples below.
+   GMIN/source/Testing/example/CMakeLists.txt 
+   GMIN/source/Testing/example2/CMakeLists.txt
+
+If you want to jump in and make a test, The best way to do it is to copy the
+examples.  They are fairly well documented.  The below is the conceptual idea
+behind what is happening in the examples.
+
+<<<<<<<<<<<<<<<<<<<< examples >>>>>>>>>>>>>>>>>>>>
+
+EXAMPLE 1: Unit test:  Testing your potential directly
+
+See the files in GMIN/source/Testing/example/ for details
+
+In GMIN (main.F) after the initialization is done, but before the bulk of the
+program is run, subroutine RUN_TESTS_AFTER_INIT() is called.  Normally this
+subroutine does nothing, but we can override it for testing purposes.
+We do this by creating a file 
+
+GMIN/source/Testing/mytest/testing.f90
+
+which contains your test.  Then simply use file
+GMIN/source/Testing/mytest/CMakeLists.txt to tell cmake to compile and link in
+this test subroutine.
+
+Your redefinition of RUN_TESTS_AFTER_INIT() can call your potential (preferably
+directly, not through the wrapper subroutine POTENTIAL) on a sample set of
+coordinates, perhaps even one interaction pair.  It then should test the
+resultant energy against an expected value.  If you determine the energies are
+close enough print "Test successful" to standard out. cmake will recognize the
+string "Test successful" to know the test passed
+
+
+EXAMPLE 2: system test:  Run GMIN as normal and test the energy in GMIN_out 
+
+See the files in GMIN/source/Testing/example2/ for details
+
+There is a handy macro already written for this.  Just add the following line
+to CMakeLists.txt in your testing directory
+
+gmin_quench_test(test_name GMIN testdir energy_val)
+
+Where testdir is the directory holding the necessary input data for your GMIN
+run.

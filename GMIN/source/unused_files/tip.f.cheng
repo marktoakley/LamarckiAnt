@@ -1,0 +1,280 @@
+C   Rewrite by Longjiu Cheng 2007
+
+C   GMIN: A program for finding global minima
+C   Copyright (C) 1999-2006 David J. Wales
+C   This file is part of GMIN.
+C
+C   GMIN is free software; you can redistribute it and/or modify
+C   it under the terms of the GNU General Public License as published by
+C   the Free Software Foundation; either version 2 of the License, or
+C   (at your option) any later version.
+C
+C   GMIN is distributed in the hope that it will be useful,
+C   but WITHOUT ANY WARRANTY; without even the implied warranty of
+C   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C   GNU General Public License for more details.
+C
+C   You should have received a copy of the GNU General Public License
+C   along with this program; if not, write to the Free Software
+C   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+C
+C
+C  Energy and gradient for rigid body TIP4P using new rigid body
+C  derivative functions etc.
+C
+      SUBROUTINE TIP4P(X,V,ETIP,GTEST,SECT)
+      USE commons
+
+      IMPLICIT NONE
+      LOGICAL GTEST,SECT
+      INTEGER J1, J2, K1, K2, NAT2, NSITE
+      DOUBLE PRECISION X(3*NATOMS),V(3*NATOMS),X1,Z1,Y1,dx0,dy0,dz0,
+     1                 dx,dy,dz,ETIP, DUMMY, RALPHA12, RALPHA22,
+     2                 L1Y, L1X, L1Z, L2Y, L2X, L2Z, ALPHA1, CA1, CA2, 
+     3                 ALPHA2, S1, S2, C3A1, C3A2,C6, C12,
+     4                 GX1, GY1, GZ1, GL1X, GL1Y, GL1Z, GL2X, GL2Y,GL2Z,
+     5                 C2A2, C2A1,r,r2,r6, DUMMY2,
+     6                 P1X, P1Y, P1Z, P2X, P2Y, P2Z, XDUMM, Q1, Q2,
+     7                 CHARGE(5), HTOKJ,
+     8            Dl1p,Dl2p,l1pxy,l2pxy,l1pyz,l2pyz,l1pzx,l2pzx,t1,t2,t3
+      PARAMETER (HTOKJ=1389.354848D0) ! conversion factor for coulomb energy and gradients
+C
+C  Statement functions.
+C  Site-site energy terms - Coulombic and LJ. XDUMM is the site-site distance.
+C
+C      FLJ(XDUMM)=(C12/XDUMM**6-C6)/XDUMM**6
+C      DFLJ(XDUMM)=-6.0D0*(-C6+2.0D0*C12/XDUMM**6)/XDUMM**7
+C      FC(Q1,Q2,XDUMM)=Q1*Q2/XDUMM
+C      DFC(Q1,Q2,XDUMM)=-Q1*Q2/XDUMM**2
+
+C     PRINT*,'coords in TIP:'
+C     WRITE(*,'(3F20.10)') (X(J1),J1=1,3*NATOMS)
+C
+C Distinguish TIP1P, TIP2P, TIP3P, TIP4P
+C
+      SITE(1,1)=0.0D0
+      SITE(1,2)=0.0D0
+      SITE(1,3)=0.0D0
+C     SITE(1,3)=0.065098D0
+      SITE(2,1)=0.756950327D0
+      SITE(2,2)=0.0D0
+      SITE(2,3)=-0.5858822760D0
+C     SITE(2,3)=-0.5207842760D0
+      SITE(3,1)=-0.756950327D0
+      SITE(3,2)=0.0D0
+      SITE(3,3)=-0.5858822760D0
+C     SITE(3,3)=-0.5207842760D0
+      SITE(4,1)=0.0D0
+      SITE(4,2)=0.0D0
+      CHARGE(1)=0.0D0
+      NSITE=4
+
+      IF (TIPID.EQ.1) THEN
+         C6=2510.4D0 ! LJ coefficients in kJ/mol Angstrom**6 or Angstrom**12
+         C12=2426720.0D0
+         SITE(4,3)=0.0D0
+C        SITE(4,3)=0.065098D0
+         CHARGE(2)=0.4D0
+         CHARGE(3)=0.4D0
+         CHARGE(4)=-0.8D0
+      ELSE IF (TIPID.EQ.2) THEN
+         C6=2510.4D0 ! LJ coefficients in kJ/mol Angstrom**6 or Angstrom**12
+         C12=2907880.0D0
+         SITE(4,3)=-0.15D0
+C        SITE(4,3)=-0.084902D0
+         CHARGE(2)=0.535D0
+         CHARGE(3)=0.535D0
+         CHARGE(4)=-1.07D0
+      ELSE IF (TIPID.EQ.3) THEN
+         C6=2489.48D0 ! LJ coefficients in kJ/mol Angstrom**6 or Angstrom**12
+         C12=2435088.0D0
+         SITE(4,3)=0.0D0
+C        SITE(4,3)=0.065098D0
+         CHARGE(2)=0.417D0
+         CHARGE(3)=0.417D0
+         CHARGE(4)=-0.834D0
+      ELSE IF (TIPID.EQ.4) THEN
+         C6=2552.24D0 ! LJ coefficients in kJ/mol Angstrom**6 or Angstrom**12
+         C12=2510.4D3
+         SITE(4,3)=-0.15D0
+C        SITE(4,3)=-0.084902D0
+         CHARGE(2)=0.52D0
+         CHARGE(3)=0.52D0
+         CHARGE(4)=-1.04D0
+      ELSE IF (TIPID.EQ.5) THEN
+! C6  = 590.3472412D0 kcal/mol Angstrom**6
+! C12 = 544546.6644D0 kcal/mol Angstrom**12 
+         C6=2470.012857D0 ! LJ coefficients in kJ/mol Angstrom**6 or Angstrom**12
+         C12=2278383.244D0
+         NSITE=5
+         SITE(4,1)=0.0D0; SITE(4,2)= 0.571543301D0; SITE(4,3)=0.404151276D0
+         SITE(5,1)=0.0D0; SITE(5,2)=-0.571543301D0; SITE(5,3)=0.404151276D0
+         CHARGE(2)=0.241D0
+         CHARGE(3)=0.241D0
+         CHARGE(4)=-0.241D0
+         CHARGE(5)=-0.241D0
+      ENDIF
+
+      NAT2=NATOMS/2
+      ETIP=0.0D0
+      DO J1=1,NATOMS/2
+         VT(J1)=0.0D0
+      ENDDO
+      DO J1=1,3*NATOMS
+         V(J1)=0.0D0
+      ENDDO
+
+C     PRINT*,'site 1', site(1,1),site(1,2),site(1,3)
+C     PRINT*,'site 2', site(2,1),site(2,2),site(2,3)
+C     PRINT*,'site 3', site(3,1),site(3,2),site(3,3)
+C     PRINT*,'site 4', site(4,1),site(4,2),site(4,3)
+
+C
+C  Potential energy first.
+C
+      DO J1=1,NAT2-1
+         X1=X(3*(J1-1)+1)
+         Y1=X(3*(J1-1)+2)
+         Z1=X(3*(J1-1)+3)
+         L1X=X(3*(NAT2+J1-1)+1)
+         L1Y=X(3*(NAT2+J1-1)+2)
+         L1Z=X(3*(NAT2+J1-1)+3)
+         ALPHA1=sqrt( l1x*l1x + l1y*l1y + l1z*l1z )
+         RALPHA12=1.0D0/MAX(ALPHA1**2,1.0D-20)
+         CA1=COS(ALPHA1)
+         C2A1=CA1
+         IF (ALPHA1.LT.0.0001D0) THEN
+C           C3A1=-ALPHA1/2+ALPHA1**3/24 ! bug spotted by Tim!
+            C3A1=-0.5D0+ALPHA1**2/24.0D0
+            S1=1.0D0-ALPHA1**2/6
+         ELSE
+            C3A1=(CA1-1.0D0)/ALPHA1**2
+            S1=SIN(ALPHA1)/ALPHA1
+         ENDIF
+C        WRITE(*,'(A,6F15.5)') 'ALPHA1,RALPHA12,CA1,C2A1,C3A1,S1=',ALPHA1,RALPHA12,CA1,C2A1,C3A1,S1
+         DO J2=J1+1,NAT2
+            dx0 = X1-X(3*(J2-1)+1)
+            dy0 = Y1-X(3*(J2-1)+2)
+            dz0 = Z1-X(3*(J2-1)+3)
+            L2X=X(3*(NAT2+J2-1)+1)
+            L2Y=X(3*(NAT2+J2-1)+2)
+            L2Z=X(3*(NAT2+J2-1)+3)
+            ALPHA2=sqrt( l2x*l2x + l2y*l2y + l2z*l2z )
+            RALPHA22=1.0D0/MAX(ALPHA2**2,1.0D-20)
+            CA2=COS(ALPHA2)
+            C2A2=CA2
+            IF (ALPHA2.LT.0.00001D0) THEN
+C              C3A2=-ALPHA2/2+ALPHA2**3/24 ! bug spotted by Tim!
+               C3A2=-0.5D0+ALPHA2**2/24.0D0
+               S2=1.0D0-ALPHA2**2/6
+            ELSE
+               C3A2=(CA2-1.0D0)/ALPHA2**2
+               S2=SIN(ALPHA2)/ALPHA2
+            ENDIF
+C
+C  O-O LJ contribution.
+C
+            r2 = 1.0/(dx0**2 + dy0**2 + dz0**2)
+            r6 = r2*r2*r2
+            dummy = (c12*r6-c6)*r6
+            if(gtest.or.sect) then
+                dummy2 = -6.0*(-c6+2.0*c12*r6)*r6*r2
+                gx1 = dummy2*dx0
+                gy1 = dummy2*dy0
+                gz1 = dummy2*dz0
+                gl1x = 0.0
+                gl1y = 0.0
+                gl1z = 0.0
+                gl2x = 0.0
+                gl2y = 0.0
+                gl2z = 0.0
+            endif
+
+C
+C  Sum over charged sites.
+C
+            DO K1=2,NSITE
+               P1X=SITE(K1,1)
+               P1Y=SITE(K1,2)
+               P1Z=SITE(K1,3)
+               q1 = charge(k1)
+               Dl1p = l1x*p1x+l1y*p1y+l1z*p1z
+               l1pxy = l1y*p1x-l1x*p1y
+               l1pyz = l1z*p1y-l1y*p1z
+               l1pzx = l1x*p1z-l1z*p1x
+               DO K2=2,NSITE
+                  P2X=SITE(K2,1)
+                  P2Y=SITE(K2,2)
+                  P2Z=SITE(K2,3)
+                  q2 = charge(k2)
+                  Dl2p = l2x*p2x+l2y*p2y+l2z*p2z
+                  l2pxy = l2y*p2x-l2x*p2y
+                  l2pyz = l2z*p2y-l2y*p2z
+                  l2pzx = l2x*p2z-l2z*p2x
+
+                  t2 = c3a2*Dl2p
+                  t1 = c3a1*Dl1p
+                dx=c2a1*p1x-c2a2*p2x-t1*l1x+t2*l2x+l1pyz*s1-l2pyz*s2+dx0
+                dy=c2a1*p1y-c2a2*p2y-t1*l1y+t2*l2y+l1pzx*s1-l2pzx*s2+dy0
+                dz=c2a1*p1z-c2a2*p2z-t1*l1z+t2*l2z+l1pxy*s1-l2pxy*s2+dz0
+                  r = 1.0/sqrt(dx*dx + dy*dy + dz*dz)
+                  dummy = dummy+HTOKJ*q1*q2*r
+                  if(gtest) then
+                        dummy2 = -HTOKJ*q1*q2*r*r*r
+                        gx1 = gx1+dummy2*dx
+                        gy1 = gy1+dummy2*dy
+                        gz1 = gz1+dummy2*dz
+                        t3 = ralpha12*Dl1p
+                        t2 = l1x*dx + l1y*dy + l1z*dz
+              t1 = ralpha12*(c2a1-s1)*(l1pyz*dx+l1pzx*dy+l1pxy*dz)+
+     1             s1*(t3*t2-(p1x*dx+p1y*dy+p1z*dz))
+                   gl1x = gl1x+dummy2*(t1*l1x+c3a1*(t2*(2.0*t3*l1x-p1x)-
+     1                       Dl1p*dx)-s1*(p1y*dz-p1z*dy))
+                   gl1y = gl1y+dummy2*(t1*l1y+c3a1*(t2*(2.0*t3*l1y-p1y)-
+     1                       Dl1p*dy)-s1*(p1z*dx-p1x*dz))
+                   gl1z = gl1z+dummy2*(t1*l1z+c3a1*(t2*(2.0*t3*l1z-p1z)-
+     1                       Dl1p*dz)-s1*(p1x*dy-p1y*dx))
+
+                        t3 = ralpha22*Dl2p
+                        t2 = (l2x*dx + l2y*dy + l2z*dz)
+              t1 = ralpha22*(c2a2-s2)*(l2pyz*dx+l2pzx*dy+l2pxy*dz)+
+     1             s2*(t3*t2-(p2x*dx+p2y*dy+p2z*dz))
+                   gl2x = gl2x+dummy2*(t1*l2x+c3a2*(t2*(2.0*t3*l2x-p2x)-
+     1                       Dl2p*dx)-s2*(p2y*dz-p2z*dy))
+                   gl2y = gl2y+dummy2*(t1*l2y+c3a2*(t2*(2.0*t3*l2y-p2y)-
+     1                       Dl2p*dy)-s2*(p2z*dx-p2x*dz))
+                   gl2z = gl2z+dummy2*(t1*l2z+c3a2*(t2*(2.0*t3*l2z-p2z)-
+     1                       Dl2p*dz)-s2*(p2x*dy-p2y*dx))
+                  ENDIF
+               ENDDO
+            ENDDO
+   
+            ETIP=ETIP+DUMMY
+            VT(J1)=VT(J1)+DUMMY
+            VT(J2)=VT(J2)+DUMMY
+
+            IF (GTEST) THEN
+               V(3*(J1-1)+1)=V(3*(J1-1)+1)+GX1
+               V(3*(J1-1)+2)=V(3*(J1-1)+2)+GY1
+               V(3*(J1-1)+3)=V(3*(J1-1)+3)+GZ1
+               V(3*(NAT2+J1-1)+1)=V(3*(NAT2+J1-1)+1)+GL1X
+               V(3*(NAT2+J1-1)+2)=V(3*(NAT2+J1-1)+2)+GL1Y
+               V(3*(NAT2+J1-1)+3)=V(3*(NAT2+J1-1)+3)+GL1Z
+               V(3*(J2-1)+1)=V(3*(J2-1)+1)-GX1
+               V(3*(J2-1)+2)=V(3*(J2-1)+2)-GY1
+               V(3*(J2-1)+3)=V(3*(J2-1)+3)-GZ1
+               V(3*(NAT2+J2-1)+1)=V(3*(NAT2+J2-1)+1)-GL2X
+               V(3*(NAT2+J2-1)+2)=V(3*(NAT2+J2-1)+2)-GL2Y
+               V(3*(NAT2+J2-1)+3)=V(3*(NAT2+J2-1)+3)-GL2Z
+            ENDIF
+         ENDDO
+      ENDDO
+
+C     WRITE(*,'(A,G20.10)') 'energy=',ETIP
+C     PRINT*,'coords:'
+C     WRITE(*,'(I6,G20.10)') (J1,X(J1),J1=1,3*NATOMS)
+C     PRINT*,'gradient:'
+C     WRITE(*,'(I6,G20.10)') (J1,V(J1),J1=1,3*NATOMS)
+
+      RETURN
+      END

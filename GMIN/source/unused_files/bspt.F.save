@@ -1,0 +1,1635 @@
+!  GMIN: A program for finding global minima
+!  Copyright (C) 1999-2006 David J. Wales
+!  This file is part of GMIN.
+!
+!  GMIN is free software; you can redistribute it and/or modify
+!  it under the terms of the GNU General Public License as published by
+!  the Free Software Foundation; either version 2 of the License, or
+!  (at your option) any later version.
+!
+!  GMIN is distributed in the hope that it will be useful,
+!  but WITHOUT ANY WARRANTY; without even the implied warranty of
+!  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!  GNU General Public License for more details.
+!
+!  You should have received a copy of the GNU General Public License
+!  along with this program; if not, write to the Free Software
+!  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+!
+! 
+!---======================================---
+      SUBROUTINE PTBASINSAMPLING
+
+      USE MODCHARMM
+      USE COMMONS
+      USE TETHERFUNC
+      USE CLASS_OVERLAP
+      IMPLICIT NONE
+!
+! The ifdef MPI is basically the whole subroutine.
+!
+#ifdef MPI
+      INCLUDE 'mpif.h'
+      INTEGER, PARAMETER :: NHIST=100, NHISTE=1000
+      INTEGER :: IACCEPT(0:NPAR-1), MPIERR, J,K, TEMPUNIT
+      INTEGER NHISTQ4(NHIST,0:NPAR-1), NDUMMY, NDUMMY2, NTOT, NH, IQE, IQ4, IQ6, J1, J2, J3, J4,
+     1        NHISTQ6(NHIST,0:NPAR-1), NHISTQE(NHISTE, 0:NPAR-1), IENR, N1,
+     2        NOUT(0:NPAR-1), ITRAJ, ITRAJO,NEACCEPT, RNDSEED, NUPDATE,
+     3        CONVERGED,LBFGS_ITERATIONS, JD, BININDEX, MINIMANUMBER(HBINS,0:NPAR-1),
+     4        NHISTALLQ(NHIST, NHIST, 0:NPAR-1), IBININDEX, IBININDEX2, LOWESTDIRECT(HBINS),
+     5        NHISTGRAND(NHISTE, NHIST, NHIST, 0:NPAR-1),LBFGS_ITERATIONSO,LVISITS(NENRPER),PEVISITS2(NENRPER, HBINS, 0:NPAR-1),
+     7        NOUTQBIN, NOUTPEBIN, LBFGS_ITERATIONSSAVE, HBINMAX, HBINMIN, GETUNIT, LUNIT
+      DOUBLE PRECISION I, XOUT
+      DOUBLE PRECISION QVISITS(HBINS, 0:NPAR-1), PEVISITS(NENRPER,0:NPAR-1), NACCEPTPT(0:NPAR-1)
+
+      DOUBLE PRECISION V(NATOMS), VO(NATOMS), TEMPTRAJ(0:NPAR-1), H(0:NPAR-1), BETA(0:NPAR-1), 
+     1        EAV(0:NPAR-1), EAV2(0:NPAR-1), Q(3,NATOMS), Q4AV(0:NPAR-1), Q4AV2(0:NPAR-1), 
+     2        Q6AV(0:NPAR-1), Q6AV2(0:NPAR-1), VENR(NENRPER), 
+     3        HINIT(0:NPAR-1), X(NATOMS), Y(NATOMS), Z(NATOMS), 
+     4        CTE, T, VOLD,VNEW, POTEL, GRAD(3*NATOMS), Q4, Q6, RANDOM, DPRAND, Q4MAX, Q6MAX , 
+     5        DQ4, DQ6, DHISTE, ENUL, XO(NATOMS), YO(NATOMS), ZO(NATOMS), DDX, DDY, DDZ, DE, 
+     6        W, WCOMP, WAC, E, CV, FQ4, FQ6, RMAX, DDXN, DDYN, DDZN, R2, 
+     7        DUMMY,BINLABEL(HBINS), VNEWSAVE, DIHEORDERPARAM,SASAORDERPARAM, PEINT, HISTINT, 
+     8        DIHEORDERPARAM_AV(0:NPAR-1), SASAORDERPARAM_AV(0:NPAR-1), MINCOORDS(3*NATOMS,NPAR), INTERIMCOORDS(3*NATOMS,1),
+     9        INTERIMCOORDS2(3*NATOMS,1), DIST, DOSSTATS(MAXIT,2), DOSSTATSO(MAXIT,2), 
+     A        DCOORDS(3*NATOMS), DOSSTATSDUM(MAXIT,2), SR3, OPOTEL
+
+       DOUBLE PRECISION DIHEORDERPARAM_MIN, DIHEORDERPARAM_MAX, SASAORDERPARAM_MIN, SASAORDERPARAM_MAX, 
+     1          DDIHE, DSASA, RGYR_MIN, RGYR_MAX, EINT_MIN, EINT_MAX, DRGYR, DEINT,
+     2          RGYR_AV(0:NPAR-1), EINT_AV(0:NPAR-1), RGYR_AV2(0:NPAR-1), EINT_AV2(0:NPAR-1),
+     3          ORDERPARAM1, ORDERPARAM2, DISTANCE(HBINS, 0:NPAR-1),
+     4          DISTANCE_AV(HBINS,0:NPAR-1), DISTANCEOLD, NORM_PJ(0:NPAR-1), PJ(HBINS,0:NPAR-1),
+     5          VMINOLD, VMINNEW, DELTA_EAV(0:NPAR-1), CX, CY, CZ, LCOORDS(3*NATOMS),
+     6          DIHEORDERPARAM_AV2(0:NPAR-1), SASAORDERPARAM_AV2(0:NPAR-1), RGYR, EINT, VMINNEWSAVE, CANDIDATEWEIGHT
+
+      CHARACTER (LEN=256)  FILENAME, FILENAME2,FILENAME3,FILENAME4,FILENAME5,FILENAME6,
+     1                      FILENAME7,FILENAME8,FILENAME9, FILENAME10, FILENAME11, FILENAME12, 
+     2                      FILENAME100,FILENAME101,FILENAME102, FILENAME103, FILENAME104, FILENAME105,
+     3                      FILENAME106, FILENAMEDUMMY
+      CHARACTER (LEN=80)  ISTR, SDUMMY
+      CHARACTER (LEN=80)  CFNAME
+      LOGICAL FITS, NEWENERGY, EVAP, EVAPREJECT, RECOUNT, YESNO, OUTSIDE, JUMPT
+      LOGICAL PTMCDS_NEW, FILETEST
+      DOUBLE PRECISION RRX,RRY,RRZ,RRR
+
+      DOUBLE PRECISION PREVSTEPS, PFNORM1, PFNORM2, NORM1, NORM2
+      DOUBLE PRECISION, ALLOCATABLE :: CANDIDATECRD(:,:,:), CANDIDATEPE(:,:), CANDIDATET(:,:)
+      INTEGER, ALLOCATABLE :: CANDIDATENUM(:)
+      INTEGER OVERLAP_UNIT, OVERLAP_COUNT, KAPPA
+      CHARACTER (LEN=200)  OVERLAP_FNAME
+      DOUBLE PRECISION TIMESTART, OVERLAP_TIMETOT
+      DOUBLE PRECISION OVERLAP_VALA, OVERLAP_VALB, OVERLAP_VALAB
+      DOUBLE PRECISION OVERLAP_VAL2A, OVERLAP_VAL2B, OVERLAP_VAL2AB
+      DOUBLE PRECISION OVERLAP_VAL2RA, OVERLAP_VAL2RB, OVERLAP_VAL2RAB
+      DOUBLE PRECISION OVERLAP_VALQA, OVERLAP_VALQB, OVERLAP_VALQAB
+      DOUBLE PRECISION OVERLAP_VALQ2A, OVERLAP_VALQ2B, OVERLAP_VALQ2AB
+      DOUBLE PRECISION OVERLAP_VALQ2RA, OVERLAP_VALQ2RB, OVERLAP_VALQ2RAB
+      LOGICAL NORESET_TEMP
+      INTEGER EXAB_COUNT, EXAB_ACC
+
+!     DOUBLE PRECISION PTCAND(PTSTEPS/10,3*NATOMS), PTCANDE(PTSTEPS/10)
+      DOUBLE PRECISION PEQMIN(NRESMIN), QV(NENRPER), ZT, VZERO, THISV, PEQV(NENRPER), XDUMMY
+      INTEGER PTCANDN, NGMIN, NCHOSEN
+
+      COMMON /MYPOT/ POTEL
+      COMMON /EV/ EVAP, EVAPREJECT
+
+      PTMCDS_NEW = .TRUE.
+      EXAB_COUNT = 0
+      EXAB_ACC = 0
+
+      CALL MPI_COMM_SIZE(MPI_COMM_WORLD,NDUMMY,MPIERR)
+      CALL MPI_COMM_RANK(MPI_COMM_WORLD,MYNODE,MPIERR)
+      XOUT=0.0D0
+      NOUTQBIN=0
+      NOUTPEBIN=0
+!
+! Should remove the CANDIDATELISTT stuff when tidying up. DJW
+!
+      PTCANDN=PTSTEPS/10
+      IF (CANDIDATELISTT) THEN
+         ALLOCATE(CANDIDATECRD(3*NATOMS,NCANDIDATES,HBINS),CANDIDATENUM(HBINS),
+     &            CANDIDATEPE(NCANDIDATES,HBINS),CANDIDATET(NCANDIDATES,HBINS))
+         CANDIDATENUM(1:HBINS)=0
+         CANDIDATEPE(1:NCANDIDATES,1:HBINS)=0.0D0
+         CANDIDATET(1:NCANDIDATES,1:HBINS)=0.0D0
+         CANDIDATECRD(1:3*NATOMS,1:NCANDIDATES,1:HBINS)=0.0D0
+         WRITE(MYUNIT, '(A,F12.4)') 'bspt> Allocated storage for candidate configurations in Mb: ', 
+     &        3*NATOMS*NCANDIDATES*HBINS*8.0D0/1.0D6
+      ENDIF
+
+      WRITE(MYUNIT, '(A,I10,A,I10)') "bspt> This is processor", MYNODE+1, " of", NPAR
+      WRITE(MYUNIT, '(A,I10)') 'bspt> Number of atoms', natoms
+      IF (FIXSTEP(1)) FIXSTEP(2:NPAR)=.TRUE.
+      IF (FIXTEMP(1)) FIXTEMP(2:NPAR)=.TRUE.
+      IF (PERIODIC) THEN
+         WRITE(MYUNIT, '(A,6G20.10)') 'bspt> Binary data', ntypea, epsab, epsbb, sigab, sigbb, cutoff
+         WRITE(MYUNIT, '(A,3G20.10)') 'bspt> Box data', boxlx, boxly, boxlz
+      ELSEIF(CHRMMT) THEN
+         WRITE(MYUNIT, '(A)') 'bspt> CHARMM job'
+         IF (FIXSTEP(MYNODE+1).OR.FIXBOTH(MYNODE+1)) THEN
+            WRITE(MYUNIT, '(A,G20.10,A)') 'bspt> Starting stepsize ', STEP(MYNODE+1),' (fixed)'
+         ELSE
+            WRITE(MYUNIT, '(A,G20.10,A)') 'bspt> Starting stepsize ', STEP(MYNODE+1),
+     &                            ' (will be dynamically adjusted during equilibration)'
+         ENDIF
+      ELSEIF (.NOT.MODEL1T) THEN
+         IF (PERCOLATET) THEN
+            WRITE(MYUNIT, '(A,2G20.10)') 'bspt> Checking for a percolating system with threshold ',SQRT(PERCCUT)
+         ELSE
+            WRITE(MYUNIT, '(A,2G20.10)') 'bspt> Radius and Radius**2: ',SQRT(RADIUS),radius
+         ENDIF
+      ENDIF
+
+      ITRAJ=MYNODE
+      NEACCEPT=0
+!     MINIMANUMBER=0 ! Number of distinct minima for quench bins in each replica. Not currently used.
+      IENR=0 ! DJW APPEARED TO BE UNINITIALISED ?
+!
+! PEINT is the PE bin width.
+!
+      PEINT=(PTEMAX-PTEMIN)/NENRPER
+      MAXEFALL=-1.0D100
+      HISTINT=(HISTMAX-HISTMIN)/HBINS
+      IF (MINDENSITYT.AND.(PTSTEPS*1.0D0.GT.0.0D0)) THEN
+         WRITE(MYUNIT, '(A,2I8)') 'bspt> WARNING **** PTSTEPS reset to zero for density of minima run' 
+         PTSTEPS=0
+      ENDIF
+!
+! Limit for quench energy above which steps will be rejected.
+!
+!     HBINMAX=(MIN(BSPTQMAX,HISTMAX)-HISTMIN)/HISTINT+1
+!     HBINMIN=(MAX(BSPTQMIN,HISTMIN)-HISTMIN)/HISTINT
+      HBINMIN=1
+      HBINMAX=HBINS
+      WRITE(MYUNIT, '(A,2I8)') 'bspt> Minimum and maximum quench bin limits: ',HBINMIN,HBINMAX
+      DO J1=1, HBINS
+!        BINLABEL(J1)=HISTMIN + HISTINT*(J1-0.5D0) ! these energies point to the middle of the quench bin
+         BINLABEL(J1)=HISTMIN + HISTINT*(J1-1.0D0) ! these energies point to the bottom of the quench bin
+      ENDDO
+
+!js850> 
+      IF (OVERLAPK) THEN
+        OVERLAP_COUNT = 0
+        OVERLAP_UNIT=GETUNIT()
+        WRITE(OVERLAP_FNAME,*) 'overlap.'
+        WRITE(SDUMMY,'(I3)') MYNODE+1 
+        OVERLAP_FNAME=TRIM(ADJUSTL(OVERLAP_FNAME)) // TRIM(ADJUSTL(SDUMMY))
+        OPEN(UNIT=OVERLAP_unit,FILE=OVERLAP_FNAME, STATUS="unknown", form="formatted")
+        WRITE(MYUNIT,'(A)') "bspt> overlap> I Qsum E Qsumquench Equench QA QB QexpA QexpB QexpAB" 
+        WRITE(OVERLAP_UNIT,'(2A)') "#I, QAB, E, quenchQAB, Equench, QA, QB, QexpA, QexpB, QexpAB, quenchQexpA, ", 
+     &         "quenchQexpB, quenchQexpAB Qexp2RA Qexp2RB Qexp2RAB quenchQexp2RA quenchQexp2RB quenchQexp2RAB"
+      ENDIF
+
+! Initialisation
+
+      KAPPA=3*NATOMS-6
+      DO J1=1,NATOMS
+         X(J1)=COORDS(3*(J1-1)+1,MYNODE+1)
+         Y(J1)=COORDS(3*(J1-1)+2,MYNODE+1)
+         Z(J1)=COORDS(3*(J1-1)+3,MYNODE+1)
+      ENDDO
+      DO J1=1,NATOMS
+         Q(1,J1)=X(J1)
+         Q(2,J1)=Y(J1)
+         Q(3,J1)=Z(J1)
+      ENDDO
+
+      CTE=(LOG(PTTMAX/PTTMIN))/(NPAR-1)
+      CTE=EXP(CTE)
+
+      DO J1=0, NPAR-1
+         TEMPTRAJ(J1)=PTTMIN*CTE**J1
+         T=TEMPTRAJ(J1)
+         BETA(J1)=1.0D0/T
+      ENDDO
+!
+! Bookkeeping is performed by node 0.
+!
+      IF (MYNODE.EQ.0) THEN
+         LUNIT=GETUNIT()
+         OPEN(UNIT=LUNIT, FILE='temperatures',STATUS='UNKNOWN')
+         WRITE(LUNIT,'(G20.10)') TEMPTRAJ(0:NPAR-1)
+         CLOSE(LUNIT)
+         DO J1=1,NPAR
+            WRITE(SDUMMY,'(A,I6,A)') 'mkdir ',J1,' >& /dev/null'
+            CALL SYSTEM(SDUMMY)
+         ENDDO
+!
+! Node 0 could sample from a reservoir of local minima.
+!
+         IF (RESERVOIRT) THEN
+            DO J1=1,NRESMIN
+               IF (EMIN(J1).LT.VZERO) THEN
+                  VZERO=EMIN(J1)
+                  NGMIN=J1
+               ENDIF
+            ENDDO
+            WRITE(MYUNIT,'(A,I6,A,G20.10)') 'bspt> Energy of lowest minimum number ',NGMIN,' is',VZERO
+            WRITE(MYUNIT,'(A)') 'bspt> Calculating equilibrium occupation probabilities for lowest temperature image'
+            DO J1=1,NRESMIN
+               PFMIN(J1)= -EMIN(J1)/TEMPTRAJ(MYNODE) - FVIBMIN(J1)/2.0D0 - LOG(1.0D0*HORDERMIN(J1))
+            ENDDO
+            PFNORM1=0.0D0
+            PFNORM2=0.0D0
+            DO J1=1,NRESMIN
+               PFNORM1=PFNORM1+EXP(-FVIBMIN(J1)/2.0D0 - LOG(1.0D0*HORDERMIN(J1)) 
+     &                            + FVIBMIN(1)/2.0D0  + LOG(1.0D0*HORDERMIN(1)))
+               PFNORM2=PFNORM2+EXP(PFMIN(J1)-PFMIN(1))
+            ENDDO
+            PFNORM1=LOG(PFNORM1)
+            PFNORM2=LOG(PFNORM2)
+            IF (DEBUG) THEN
+               WRITE(MYUNIT,'(A)') '     energy        pg order     high T/E prob       Peq'
+               NORM1=0.0D0
+               NORM2=0.0D0
+               DO J1=1,NRESMIN
+                  WRITE(MYUNIT,'(F20.10,I6,2G20.10)') EMIN(J1),HORDERMIN(J1),
+     &             EXP(-FVIBMIN(J1)/2.0D0 -LOG(1.0D0*HORDERMIN(J1))
+     &                + FVIBMIN(1)/2.0D0 + LOG(1.0D0*HORDERMIN(1))-PFNORM1),
+     &                      EXP(PFMIN(J1)-PFMIN(1)-PFNORM2)
+                  NORM1=NORM1+EXP(-FVIBMIN(J1)/2.0D0 -LOG(1.0D0*HORDERMIN(J1))
+     &                + FVIBMIN(1)/2.0D0 + LOG(1.0D0*HORDERMIN(1))-PFNORM1)
+                  NORM2=NORM2+EXP(PFMIN(J1)-PFMIN(1)-PFNORM2)
+               ENDDO
+               WRITE(MYUNIT,'(A,2G20.10)') 'bspt> Check sums=',NORM1,NORM2
+            ENDIF
+!
+! Equilibrium occupation probabilities of the NRESMIN minima at this temperature,
+! and equilibrium occupation probabilities of the PE bins for the given minima.
+! Not used?
+!
+            DO J1=1,NRESMIN
+               PEQMIN(J1)=EXP(PFMIN(J1)-PFMIN(1)-PFNORM2)
+            ENDDO
+!
+! QV(J1) is the logarithm of the density of states at the potential
+! energy corresponding to bin J1 at the temperature of the replica.
+!
+            XDUMMY=-HUGE(1.0D0)
+            DO J1=1,NENRPER
+               THISV=PTEMIN+(J1-0.5D0)*PEINT
+               IF (THISV.GT.VZERO) THEN
+                  QV(J1)=(KAPPA/2.0D0-1.0D0)*LOG(THISV-VZERO)-FVIBMIN(NGMIN)/2.0D0-LOG(1.0D0*HORDERMIN(NGMIN))
+!                 WRITE(MYUNIT,'(A,I6,4G20.10)') 'J1, initial QV=',J1,QV(J1)
+                  DUMMY=0.0D0
+                  DO J2=1,NRESMIN
+                     IF (THISV.GT.EMIN(J2)) THEN
+                        DUMMY=DUMMY+EXP((FVIBMIN(NGMIN)-FVIBMIN(J2))/2.0D0)
+     &                             *((1.0D0*HORDERMIN(NGMIN))/(1.0D0*HORDERMIN(J2)))
+     &                             *((THISV-EMIN(J2))/(THISV-VZERO))**(KAPPA/2.0D0-1.0D0)
+                     ENDIF
+                  ENDDO
+                  IF (DUMMY.GT.0.0D0) QV(J1)=QV(J1)+LOG(DUMMY)
+               ELSE
+                  QV(J1)=-HUGE(1.0D0)
+               ENDIF
+            ENDDO
+!
+! Find the largest term in the partition function and use it to rescale
+! everything.
+!
+            XDUMMY=-HUGE(1.0D0)
+            DO J1=1,NENRPER
+               THISV=PTEMIN+(J1-0.5D0)*PEINT
+               DUMMY=QV(J1)-(THISV-VZERO)/TEMPTRAJ(MYNODE)
+               IF (DUMMY.GT.XDUMMY) XDUMMY=DUMMY
+            ENDDO
+            ZT=0.0D0
+            DO J1=1,NENRPER
+               QV(J1)=QV(J1)-XDUMMY
+               THISV=PTEMIN+(J1-0.5D0)*PEINT
+               ZT=ZT+EXP(QV(J1)-(THISV-VZERO)/TEMPTRAJ(MYNODE))
+            ENDDO
+            ZT=LOG(ZT)
+!           IF (DEBUG) WRITE(MYUNIT,'(A,G20.10)') 'bspt> ZT=',ZT
+!
+! ZT is the log of the partition function and PEQV(J1) is the 
+! occupation probability of PE bin J1 at this temperature.
+!
+            NORM1=0.0D0
+            DUMMY=-HUGE(1.0D0)
+            DO J1=1,NENRPER
+               THISV=PTEMIN+(J1-0.5D0)*PEINT
+               PEQV(J1)=EXP(QV(J1)-(THISV-VZERO)/TEMPTRAJ(MYNODE)-ZT)
+               IF (PEQV(J1).GT.DUMMY) THEN
+                  NDUMMY=J1
+                  DUMMY=PEQV(J1)
+               ENDIF
+               NORM1=NORM1+PEQV(J1)
+               IF (DEBUG.AND.(PEQV(J1).GT.1.0D-10)) THEN
+                  WRITE(MYUNIT,'(A,I6,A,G20.10)') 'bspt> Occupation probability for bin ',J1,' is ',PEQV(J1)
+               ENDIF
+            ENDDO
+            WRITE(MYUNIT,'(A,G20.10)') 'bspt> Check sum=',NORM1
+            WRITE(MYUNIT,'(A,I6,A,G20.10)') 'bspt> Most probable PE bin is ',NDUMMY,' probability=',EXP(DUMMY)
+!
+! Just for fun, work out the probability of each minimum being associated
+! with the most probable bin.
+!
+            THISV=PTEMIN+(NDUMMY-0.5D0)*PEINT
+            NORM1=0.0D0
+            DO J2=1,NRESMIN
+               IF (THISV.GT.EMIN(J2)) THEN
+                  DUMMY=EXP(-FVIBMIN(J2)/2.0D0-QV(NDUMMY)-XDUMMY
+     &                      +(KAPPA/2.0D0-1.0D0)*LOG((THISV-EMIN(J2))))/(1.0D0*HORDERMIN(J2))
+                  NORM1=NORM1+DUMMY
+                  WRITE(MYUNIT,'(A,I6,A,G20.10)') 'bspt> Minimum ',J2,' probability for most likely PE bin ',
+     &                                        DUMMY
+               ENDIF
+            ENDDO
+            WRITE(MYUNIT,'(A,G20.10)') 'bspt> Check sum=',NORM1
+         ENDIF
+!
+! End of reservoir minima setup for node 0, if required.
+!
+      ENDIF
+!
+! For restart we need to get the current configuration, its pe, the pe of the minimum it quenched to,
+! if applicable, the number of steps already done, the maximum step size, and the Visits and Visits2
+! histograms. If we dump using BSPTDUMPFRQ then we can restore from the last such file. We can work
+! out what the last dump was once we know how many steps have been done!
+!
+      IF (BSPTRESTART) THEN
+         WRITE (ISTR, '(I10)') MYNODE+1
+         FILENAME12=TRIM(ADJUSTL(ISTR)) // "/bsptrestart"
+         LUNIT=GETUNIT()
+         OPEN(UNIT=LUNIT,FILE=FILENAME12, STATUS="old", form="formatted")
+         READ(LUNIT,*) PREVSTEPS,VOLD,VMINOLD,STEP(MYNODE+1),
+     &                       NACCEPTPT(MYNODE),NEACCEPT,NTOT,NOUTQBIN,NOUTPEBIN,NQ(MYNODE+1)
+         WRITE (MYUNIT,'(A,F20.1)') 'bspt> Number of previous steps=     ',PREVSTEPS
+         WRITE (MYUNIT,'(A,2F20.10)') 'bspt> Quench and instantaneous PE=',VMINOLD,VOLD
+         WRITE (MYUNIT,'(A,F20.10)') 'bspt> Step size=',STEP(MYNODE+1)
+         WRITE (MYUNIT,'(A,F15.1,2I10)') 'bspt> Accepted MC steps, PT steps and total PT steps=',NACCEPTPT(MYNODE),NEACCEPT,NTOT
+         WRITE (MYUNIT,'(A,3I10)') 'bspt> Quenches and instantaneous energies outside range=',NOUTQBIN,NOUTPEBIN
+         WRITE (MYUNIT,'(A,I10)') 'bspt> Total quenches=',NQ(MYNODE+1)
+         DO J1=1,NATOMS
+            J2=3*(J1-1)
+            READ(LUNIT,*) COORDS(J2+1,MYNODE+1), COORDS(J2+2,MYNODE+1), COORDS(J2+3,MYNODE+1)
+         ENDDO
+         CLOSE(LUNIT)
+         FILENAME101=TRIM(ADJUSTL(ISTR)) // "/Visits.his"
+         FILENAMEDUMMY=TRIM(ADJUSTL(FILENAME101))
+         IF (BSPTDUMPFRQ.GT.0) THEN
+            DUMMY=INT(PREVSTEPS/(1.0D0*BSPTDUMPFRQ))*1.0D0
+!
+!  Miscompiles unless we split up the calculation of DUMMY !!!
+!
+!           WRITE(MYUNIT,*) 'bspt> PREVSTEPS,BSPTDUMPFRQ,DUMMY=',PREVSTEPS,BSPTDUMPFRQ,DUMMY
+!           WRITE(MYUNIT,*) 'bspt> INT,arg=',INT(PREVSTEPS/(1.0D0*BSPTDUMPFRQ)),PREVSTEPS/(1.0D0*BSPTDUMPFRQ)
+            DUMMY=DUMMY*BSPTDUMPFRQ
+!           WRITE(MYUNIT,*) 'bspt> DUMMY=',DUMMY
+            CALL FLUSH(MYUNIT)
+            WRITE (SDUMMY, '(F15.1)') DUMMY
+            FILENAME101=TRIM(ADJUSTL(FILENAME101)) // '.' // TRIM(ADJUSTL(SDUMMY))
+!
+!js850> if file #/Visits.his.#####.0 doesn't exist, then check if
+!          file #/Visits.his  exists and use that instead.  This is
+!          a way to change BSPTDUMPFRQ after a restart
+!
+            INQUIRE(FILE=TRIM(ADJUSTL(FILENAME101)), EXIST=FILETEST)
+            IF ( .NOT. FILETEST ) THEN
+               INQUIRE(FILE=FILENAMEDUMMY, EXIST=FILETEST)
+               IF ( FILETEST ) FILENAME101=FILENAMEDUMMY
+            ENDIF
+         ELSE
+            FILENAME101=TRIM(ADJUSTL(FILENAME101)) ! this should be the final and only Visits file
+         ENDIF
+         IF (PREVSTEPS.GT.NEQUIL) THEN
+            WRITE(MYUNIT,'(A,A)') 'bspt> Reading restart information from ',TRIM(ADJUSTL(FILENAME101))
+            CALL FLUSH(MYUNIT)
+            LUNIT=GETUNIT()
+            OPEN(UNIT=LUNIT,FILE=FILENAME101, STATUS="unknown", form="formatted")
+            READ(LUNIT, '(G20.10)') DUMMY
+            READ(LUNIT, '(A)') SDUMMY
+            DO K=1, NENRPER
+               READ(LUNIT,*) DUMMY,PEVISITS(K,MYNODE)
+            ENDDO
+            READ(LUNIT, '(A)') SDUMMY
+            DO K=1, HBINS
+               WRITE(LUNIT,*) DUMMY, QVISITS(K,MYNODE)
+            ENDDO
+            CLOSE(LUNIT)
+         ENDIF
+         IF (BSPT.AND.(PREVSTEPS.GT.NEQUIL+PTSTEPS).AND.(.NOT.MINDENSITYT)) THEN
+            FILENAME101=TRIM(ADJUSTL(ISTR)) // "/Visits2.his"
+            WRITE(MYUNIT,'(A,A)') 'bspt> Reading restart information from ',TRIM(ADJUSTL(FILENAME101))
+            LUNIT=GETUNIT()
+            OPEN(UNIT=LUNIT,FILE=FILENAME101,STATUS="unknown",FORM="UNFORMATTED")
+            READ(LUNIT) PEVISITS2(1:NENRPER,1:HBINS,MYNODE)
+            CLOSE(LUNIT) 
+         ENDIF
+         CONVERGED=1
+         IF (CANDIDATELISTT) THEN
+            WRITE(FILENAME101,'(I3)') MYNODE+1
+            FILENAME101=TRIM(ADJUSTL(FILENAME101)) // '/configurations'
+            TEMPUNIT=GETUNIT()
+            OPEN(UNIT=TEMPUNIT,FILE=FILENAME101,STATUS='UNKNOWN')
+            DO K=1,HBINS
+               READ(TEMPUNIT,*) NDUMMY,CANDIDATENUM(K),CANDIDATEPE(1:NCANDIDATES,K),CANDIDATET(1:NCANDIDATES,K)
+               IF (CANDIDATENUM(K).EQ.0) CYCLE
+               READ(TEMPUNIT,'(3G20.10)') CANDIDATECRD(1:3*NATOMS,1:NCANDIDATES,K)
+            ENDDO
+            CLOSE(TEMPUNIT)
+            WRITE(FILENAME101,'(I3)') 'bspt> Candidate configuration data read from file ' // FILENAME101
+         ENDIF
+      ELSE
+!
+! This is the block executed if we are not restarting.
+!
+12       CALL POTENTIAL(COORDS(:,MYNODE+1),GRAD, POTEL, .TRUE., .FALSE.)
+         VOLD=POTEL
+         WRITE(MYUNIT,'(2(A,G20.10))') 'bspt> Initial configuration energy is ',VOLD
+!        WRITE(MYUNIT,'(2(A,G20.10))') 'bspt> NOT QUENCHING initial config'
+         CALL QUENCH(.FALSE.,MYNODE+1,LBFGS_ITERATIONS,DUMMY,NDUMMY,CONVERGED,COORDS(:,MYNODE+1),DOSSTATS)
+         WRITE(MYUNIT,'(A,G20.10)') 'bspt> Initial configuration has been quenched to energy ',POTEL
+!
+!  If we start with an invalid configuration we may never recover!
+!
+         IF (.NOT.(CHRMMT.OR.MODEL1T.OR.PERIODIC)) THEN
+             IF (PERCOLATET) THEN
+               CALL PERC(COORDS(1:3*NATOMS,MYNODE+1),NATOMS,PERCCUT,PERCT,DEBUG,MYUNIT,RIGID)
+               IF (.NOT.PERCT) THEN
+                  WRITE(MYUNIT,'(A,I6,A)') 'bspt> ERROR *** Initial coordinates do not define a percolating system'
+                  STOP
+               ENDIF
+            ELSE
+               DO K=1,NATOMS
+                  DIST=COORDS(3*(K-1)+1,MYNODE+1)**2+COORDS(3*(K-1)+2,MYNODE+1)**2+COORDS(3*(K-1)+3,MYNODE+1)**2
+                  IF (DIST.GT.RADIUS) THEN
+                     IF (MOD(I-1.0D0,1.0D0*PRTFRQ).EQ.0) WRITE(MYUNIT,'(A,I6,A)') 'bspt> Atom ',K,
+     &                       ' outside container, reseed and try again'
+                     SR3=DSQRT(3.0D0)
+                     DO J1=1,NATOMS
+                        RANDOM=(DPRAND()-0.5D0)*2.0D0
+                        COORDS(3*(K-1)+1,MYNODE+1)=RANDOM*DSQRT(RADIUS)/SR3
+                        RANDOM=(DPRAND()-0.5D0)*2.0D0
+                        COORDS(3*(K-1)+2,MYNODE+1)=RANDOM*DSQRT(RADIUS)/SR3
+                        RANDOM=(DPRAND()-0.5D0)*2.0D0
+                        COORDS(3*(K-1)+3,MYNODE+1)=RANDOM*DSQRT(RADIUS)/SR3
+                     ENDDO
+                     GOTO 12
+                  ENDIF
+               ENDDO 
+            ENDIF
+         ENDIF
+      ENDIF
+
+      LBFGS_ITERATIONS=0
+      LBFGS_ITERATIONSO=0 ! so that we don't use quench DoS statistics from arbitrary high energy
+      VOLD=POTEL
+      DO J1=1,NATOMS
+         X(J1)=COORDS(3*(J1-1)+1,MYNODE+1)
+         Y(J1)=COORDS(3*(J1-1)+2,MYNODE+1)
+         Z(J1)=COORDS(3*(J1-1)+3,MYNODE+1)
+      ENDDO
+      DO J1=1,NATOMS
+         Q(1,J1)=X(J1)
+         Q(2,J1)=Y(J1)
+         Q(3,J1)=Z(J1)
+      ENDDO
+
+      IF (PERIODIC) THEN
+         CALL QORDER_BLJ(Q,Q4,Q6)
+      ELSE IF (CHRMMT) THEN
+           IF (ODIHET) CALL CHCALCDIHE(DIHEORDERPARAM,COORDS(1:3*NATOMS,MYNODE+1))
+           IF (OSASAT) CALL ORDER_SASA(SASAORDERPARAM,RPRO,COORDS(1:3*NATOMS:3,MYNODE+1),
+     &             COORDS(2:3*NATOMS:3,MYNODE+1),COORDS(3:3*NATOMS:3,MYNODE+1))
+           IF (ORGYT) CALL CHCALCRGYR(RGYR,COORDS(1:3*NATOMS:3,MYNODE+1),
+     &             COORDS(2:3*NATOMS:3,MYNODE+1),COORDS(3:3*NATOMS:3,MYNODE+1),.FALSE.) 
+           IF (OEINTT) CALL CHCALCEINT(EINT,COORDS(1:3*NATOMS:3,MYNODE+1),
+     &             COORDS(2:3*NATOMS:3,MYNODE+1),COORDS(3:3*NATOMS:3,MYNODE+1),POTEL)
+      ELSE
+         CALL QORDER_LJ(Q,Q4,Q6)
+      ENDIF
+
+      WRITE(MYUNIT, '(A,2G20.10)') 'bspt> Temperature range', TEMPTRAJ(0), TEMPTRAJ(NPAR-1)
+      WRITE(MYUNIT, '(A,G20.10)') 'bspt> This temperature trajectory=', TEMPTRAJ(MYNODE)
+      IF (.NOT.BSPTRESTART) VMINOLD=VOLD
+      IF ((.NOT.BSPTRESTART).AND.(NEQUIL+PTSTEPS.GT.0)) VMINOLD=0.0D0 
+      IF (RESERVOIRT) WRITE (MYUNIT,'(A,F20.1)') 'bspt> Lowest temperature replica will use reservoir minima'
+      WRITE (MYUNIT,'(A,F20.1)') 'bspt> Number of equilibration steps=',NEQUIL
+      WRITE (MYUNIT,'(A,F20.1)') 'bspt> Number of PT steps=           ',PTSTEPS
+      WRITE (MYUNIT,'(A,F20.1)') 'bspt> Number of BSPT steps=         ',NQUENCH
+      IF (MINDENSITYT) WRITE (MYUNIT,'(A,F20.1)') 'bspt> Accept/reject based on quench energy'
+      IF (PERIODIC) WRITE(MYUNIT, '(A, 2G20.10)') 'bspt> Starting Q4, Q6=', Q4, Q6
+      IF (CHRMMT) THEN
+        IF (OSASAT)  WRITE(MYUNIT, '(A, 2G20.10)') 'bspt> Starting Met-enk order params=', 
+     &                                         DIHEORDERPARAM, SASAORDERPARAM 
+        IF (ORGYT)  WRITE(MYUNIT, '(A, G20.10)') 'bspt> Starting Rgyr order params=', 
+     &                                          RGYR 
+        IF (OEINTT) WRITE(MYUNIT, '(A, G20.10)') 'bspt> Starting Eint order params=',
+     &                                          EINT
+      ENDIF
+!
+! Initialisation complete
+!
+      RNDSEED=2002+MYNODE
+      CALL SDPRND(RNDSEED)
+      RANDOM=DPRAND()
+      WRITE(MYUNIT, '(A, G20.10)') 'bspt> Starting random number=', RANDOM
+      IF (FIXSTEP(MYNODE+1).OR.FIXBOTH(MYNODE+1)) THEN
+         WRITE(MYUNIT, '(A,G20.10,A)') 'bspt> Starting stepsize ', STEP(MYNODE+1),' (fixed)'
+      ELSE
+         WRITE(MYUNIT, '(A,G20.10,A)') 'bspt> Starting stepsize ', STEP(MYNODE+1),' (will be dynamically adjusted)'
+      ENDIF
+      CALL FLUSH(MYUNIT)
+
+      IF (.NOT.BSPTRESTART) NTOT=0
+      IF (.NOT.BSPTRESTART) NACCEPTPT(MYNODE)=0.0D0
+      IF (.NOT.BSPTRESTART) QVISITS(:,MYNODE)=0.0D0
+      IF (.NOT.BSPTRESTART) PEVISITS(:,MYNODE)=0.0D0
+      IF (.NOT.BSPTRESTART) PEVISITS2(:,:,MYNODE)=0
+      IACCEPT(MYNODE)=0
+      EAV(MYNODE)=0.
+      EAV2(MYNODE)=0.
+      Q4AV(MYNODE)=0.
+      Q6AV(MYNODE)=0.
+      Q4AV2(MYNODE)=0.
+      Q6AV2(MYNODE)=0.
+      DIHEORDERPARAM_AV(MYNODE)=0.
+      SASAORDERPARAM_AV(MYNODE)=0.
+      DIHEORDERPARAM_AV2(MYNODE)=0.
+      SASAORDERPARAM_AV2(MYNODE)=0.
+      RGYR_AV(MYNODE)=0.
+      EINT_AV(MYNODE)=0.
+      RGYR_AV2(MYNODE)=0.
+      EINT_AV2(MYNODE)=0.
+      DO J1=1,NHIST
+         NHISTQ4(J1,MYNODE)=0
+         NHISTQ6(J1,MYNODE)=0
+      ENDDO
+      DO J1=1,NHISTE
+         NHISTQE(J1,MYNODE)=0
+      ENDDO
+      NHISTALLQ(:,:,MYNODE)=0
+      NHISTGRAND(:,:,:,MYNODE)=0
+      DISTANCE(:,MYNODE)=0.0D0
+      DISTANCE_AV(:,MYNODE)=0.0D0
+      DELTA_EAV(MYNODE)=0.0D0
+
+      Q4MAX=0.1
+      Q6MAX=0.5 ! Will have to change as is rather system specific
+      DIHEORDERPARAM_MIN=0.4D0
+      DIHEORDERPARAM_MAX=1.0D0
+      SASAORDERPARAM_MIN=300.0D0
+      SASAORDERPARAM_MAX=800.0D0
+      RGYR_MIN=4.0D0
+      RGYR_MAX=12.0D0
+      EINT_MIN=-35.0
+      EINT_MAX=10.0
+      DDIHE=(DIHEORDERPARAM_MAX-DIHEORDERPARAM_MIN)/(NHIST-1)
+      DSASA=(SASAORDERPARAM_MAX-SASAORDERPARAM_MIN)/(NHIST-1)
+      DRGYR=(RGYR_MAX-RGYR_MIN)/(NHIST-1)
+      DEINT=(EINT_MAX-EINT_MIN)/(NHIST-1)
+      DQ4=Q4MAX/(NHIST-1)
+      DQ6=Q6MAX/(NHIST-1)
+      DHISTE=(PTEMAX-PTEMIN)/(NHISTE-1)
+
+      ENUL=VOLD
+!
+! NUPDATE specifies the interval for dynamically altering the maximum step size.
+! Only used if step size isn't fixed.
+!
+      NUPDATE=100
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Main loop over steps. We have to use double precision for the number of steps, because it
+! may exceed integer capacity.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      I=0.0D0
+      IF (BSPTRESTART) I=PREVSTEPS
+      DO 
+         I=I+1.0D0
+         IF (I.GT.NEQUIL+PTSTEPS+NQUENCH) EXIT
+         RECOUNT=.FALSE.
+         DO K=1, NATOMS
+            XO(K)=X(K)
+            YO(K)=Y(K)
+            ZO(K)=Z(K)
+            COORDSO(3*(K-1)+1,MYNODE+1)=XO(K)
+            COORDSO(3*(K-1)+2,MYNODE+1)=YO(K)
+            COORDSO(3*(K-1)+3,MYNODE+1)=ZO(K)
+         ENDDO
+!
+! Should probably worry about centre of coordinates versus centre of mass
+! for heteroatomic systems.
+!
+         IF (CENT) THEN
+            CX=0.0D0; CY=0.0D0; CZ=0.0D0
+            DO K=1,NATOMS
+               CX=CX+X(K); CY=CY+Y(K); CZ=CZ+Z(K)
+            ENDDO
+            CX=CX/NATOMS; CY=CY/NATOMS; CZ=CZ/NATOMS
+            DO K=1,NATOMS
+               X(K)=X(K)-CX; Y(K)=Y(K)-CY; Z(K)=Z(K)-CZ
+            ENDDO
+         ENDIF  
+         IF ((DEBUG.OR.CHECKMARKOVT).AND.(I.GT.1.0D0).AND.(.NOT.CANDIDATELISTT)  
+     &        .AND.(.NOT.((MYNODE.EQ.0).AND.RESERVOIRT))) THEN
+            CALL POTENTIAL(COORDSO(:,MYNODE+1),GRAD,OPOTEL,.FALSE.,.FALSE.)
+            IF (ABS(OPOTEL-VNEW).GT.ECONV) THEN
+               WRITE(MYUNIT,'(3(A,G20.10))') 'bspt> possible ERROR - energy for coordinates in COORDSO=',
+     &                     OPOTEL,' but Markov energy=',VNEW,' I=',I
+               STOP
+            ENDIF
+            IF (PERCOLATET) THEN
+               CALL PERC(COORDSO(1:3*NATOMS,MYNODE+1),NATOMS,PERCCUT,PERCT,DEBUG,MYUNIT,RIGID)
+               IF (.NOT.PERCT) THEN
+                  IF (MOD(I-1.0D0,PRTFRQ*1.0D0).EQ.0.0D0) WRITE(MYUNIT,'(A)') 
+     &              'bspt> Markov structure is not a percolating network'
+               ENDIF
+            ENDIF
+         ENDIF
+!
+! Try moving to a candidate configuration if available.  
+!
+         CANDIDATEWEIGHT=1.0D0
+         JUMPT=.FALSE.
+!          IF (CANDIDATELISTT.AND.(I.GT.NEQUIL+PTSTEPS+1)) THEN
+!             RANDOM=DPRAND()
+!             IF (RANDOM.LE.CANDIDATEFRQ) THEN
+! !                BININDEX=INT((VMINOLD-HISTMIN)/HISTINT)+1
+! !                IF ((BININDEX.GT.HBINS).OR.(BININDEX.LT.1)) THEN
+! !                   WRITE(MYUNIT,'(A,G20.10,A,I8))') 
+! !      &              'bspt> WARNING *** quench energy ',VMINOLD,
+! !      &              ' for current configuration is outside range, bin index=',BININDEX
+! !                   RECOUNT=.TRUE.
+! !                ELSE
+! ! !                 NDUMMY=INT(DPRAND()*HBINS)+1
+! !                   NDUMMY=INT(DPRAND()*(MIN(BININDEX+CANDIDATESEP,HBINS)-MAX(BININDEX-CANDIDATESEP,1)))
+! !                   NDUMMY=MAX(BININDEX-CANDIDATESEP,1)+NDUMMY
+! !                   IF (CANDIDATENUM(BININDEX).NE.0) THEN
+! !                      CANDIDATEWEIGHT=(1.0D0*MIN(NCANDIDATES,CANDIDATENUM(NDUMMY)))
+! !      &                              /(1.0D0*MIN(NCANDIDATES,CANDIDATENUM(BININDEX)))
+! ! !
+! ! ! The weight should probably proprtional to the total number of visits to this quench bin,
+! ! ! not the number we've actually saved.
+! ! !
+! ! !                    CANDIDATEWEIGHT=(1.0D0*CANDIDATENUM(NDUMMY))/(1.0D0*CANDIDATENUM(BININDEX))
+! !                      WRITE(MYUNIT,'(A,4I8,G20.10))') 
+! !      &                    'A NDUMMY,BININDEX,CNUM(NDUMMY),CNUM(BININDEX),CANDIDATEWEIGHT=',
+! !      &                       NDUMMY,BININDEX,CANDIDATENUM(NDUMMY),CANDIDATENUM(BININDEX),CANDIDATEWEIGHT
+! !                      IF (CANDIDATEWEIGHT.GT.0.0D0) THEN
+! !                         RANDOM=DPRAND()
+! !                         N1=MIN(CANDIDATENUM(NDUMMY),NCANDIDATES)
+! !                         NDUMMY2=INT(RANDOM*N1)+1
+! !                         CANDIDATEWEIGHT=
+! !      &   CANDIDATEWEIGHT*EXP(-CANDIDATEPE(NDUMMY2,NDUMMY)/CANDIDATET(NDUMMY2,NDUMMY)+VOLD*BETA(MYNODE))
+! !                         WRITE(MYUNIT,'(A,2I8,G20.10))') 
+! !      &                    'B CANDIDATENUM(NDUMMY),CANDIDATENUM(BININDEX),CANDIDATEWEIGHT=',
+! !      &                     CANDIDATENUM(NDUMMY),CANDIDATENUM(BININDEX),CANDIDATEWEIGHT
+! !                            WRITE(MYUNIT,'(2(A,I8),2(A,G20.10))') 
+! !      &                      'bspt> Attempt move from candidate configuration ',NDUMMY2,' in quench bin ',
+! !      &                      NDUMMY,' PE ',CANDIDATEPE(NDUMMY2,NDUMMY),
+! !      &                      ' temperature=',CANDIDATET(NDUMMY2,NDUMMY)
+! !                         CALL FLUSH(MYUNIT)
+! !                         DO K=1, NATOMS
+! !                            X(K)=CANDIDATECRD(3*(K-1)+1,NDUMMY2,NDUMMY)
+! !                            Y(K)=CANDIDATECRD(3*(K-1)+2,NDUMMY2,NDUMMY)
+! !                            Z(K)=CANDIDATECRD(3*(K-1)+3,NDUMMY2,NDUMMY)
+! !                         ENDDO
+! !                         IF (DEBUG.OR.CHECKMARKOVT) THEN
+! !                            LCOORDS(1:3*NATOMS)=CANDIDATECRD(1:3*NATOMS,NDUMMY2,NDUMMY)
+! !                            CALL POTENTIAL(LCOORDS,GRAD,DUMMY,.TRUE.,.FALSE.)
+! !                            IF (ABS(DUMMY-CANDIDATEPE(NDUMMY2,NDUMMY)).GT.ECONV) THEN
+! !                               WRITE(MYUNIT,'(A,2G20.10))') 
+! !      &                            'bspt> ERROR *** PE for candidate structure and saved PE are ',
+! !      &                       DUMMY,CANDIDATEPE(NDUMMY2,NDUMMY)
+! !                               WRITE(MYUNIT,'(A,10G20.10))') 'CANDIDATEPE(:,NDUMMY)=',
+! !      &                                                       CANDIDATEPE(1:NDUMMY2,NDUMMY)
+! !                               DO K=1,NDUMMY2
+! !                                  WRITE(MYUNIT,'(A,I8)') 'CANDIDATECRD ',K
+! !                                  WRITE(MYUNIT,'(3G20.10))') CANDIDATECRD(1:3*NATOMS,K,NDUMMY)
+! !                               ENDDO
+! !                               STOP
+! !                            ENDIF
+! !                         ENDIF
+! !                      ELSE
+! !                         CANDIDATEWEIGHT=1.0D0
+! !                      ENDIF
+! !                   ELSE
+! !                      WRITE(MYUNIT,'(A,I8)')
+! !      &                  'bspt> WARNING *** number of candidiates for current bin=',CANDIDATENUM(BININDEX)
+! !                   ENDIF
+! !                ENDIF
+!                NDUMMY=INT(DPRAND()*PTCANDN)+1
+! !              CANDIDATEWEIGHT=EXP(-(PTCANDE(NDUMMY)-VOLD)*BETA(MYNODE))
+! !
+! ! For jump attempts without perturbations.
+! !
+!                CANDIDATEWEIGHT=1.0D0
+!                WRITE(MYUNIT,'(A,I8,A,G20.10)') 'bspt> Attempt jump move from configuration ',NDUMMY,' PE ',PTCANDE(NDUMMY)
+!                CALL POTENTIAL(PTCAND(NDUMMY,1:3*NATOMS),GRAD,DUMMY,.TRUE.,.FALSE.)
+!                WRITE(MYUNIT,'(A,G20.10)') 'bspt> Energy of saved configuration=',DUMMY
+!                IF (ABS(DUMMY-PTCANDE(NDUMMY)).GT.ECONV) THEN
+!                   WRITE(MYUNIT,'(A,2G20.10))') 'bspt> ERROR *** PE for saved structure and saved PE are ',DUMMY,PTCANDE(NDUMMY)
+!                   STOP
+!                ENDIF
+!                JUMPT=.TRUE.
+!                CALL FLUSH(MYUNIT)
+!                DO K=1, NATOMS
+!                   X(K)=PTCAND(NDUMMY,3*(K-1)+1)
+!                   Y(K)=PTCAND(NDUMMY,3*(K-1)+2)
+!                   Z(K)=PTCAND(NDUMMY,3*(K-1)+3)
+!                ENDDO
+!             ENDIF
+!          ENDIF
+!        CANDIDATEWEIGHT=1.0D0  ! DJW for testing
+!
+! If a move is rejected, the result for the current configuration
+! should be recounted. This allows for the unsymmetrical forward
+! and backward move probabilities for an atom near the surface of
+! the constraining sphere.
+!             
+         IF (CHRMMT) THEN
+            DO K=1,NATOMS
+               RANDOM=DPRAND()
+               X(K) = X(K) + 2.0D0*RANDOM*STEP(MYNODE+1)-STEP(MYNODE+1)
+               RANDOM=DPRAND()
+               Y(K) = Y(K) + 2.0D0*RANDOM*STEP(MYNODE+1)-STEP(MYNODE+1)
+               RANDOM=DPRAND()
+               Z(K) = Z(K) + 2.0D0*RANDOM*STEP(MYNODE+1)-STEP(MYNODE+1)
+            ENDDO
+!
+! Try jumps with no perturbations.
+!
+         ELSEIF (.NOT.JUMPT) THEN
+            IF ( BINARY_EXAB .AND. (MOD(I-1.0D0,BINARY_EXAB_FRQ*1.0D0).EQ.0.0D0) ) THEN
+               !js850> try to exchange a type A and type B particle as the MC step
+               EXAB_COUNT = EXAB_COUNT + 1
+               !choose an A and a B particle
+               IF ( FREEZE ) THEN
+                 !get a mobile type B particle
+                 !NMOBILETYPEB = NTYPEB - NFREEZETYPEB = (NATOMS - NTYPEA) - (NFREEZE - NFREEZETYPEA)
+                 J3 = (NATOMS - NTYPEA) - (NFREEZE - NFREEZETYPEA) !NMOBILETYPEB
+           !      write(*,*) NATOMS , NTYPEA,  NFREEZE , NFREEZETYPEA
+                 !J4=       *( NMOBILETYPEB ) +1 + NFREEZE + (NMOBILETYPEA)
+                 RANDOM=DPRAND()
+                 J4 = RANDOM*( J3           ) +1 + NFREEZE + (NTYPEA-NFREEZETYPEA)
+                 J2 = FROZENLIST(J4)
+                 !get a mobile type A particle
+                 !NMOBILETYPEA = NTYPEA - NFREEZETYPEA
+                 !J1=       *( NMOBILETYPEA ) +1 + NFREEZE
+                 RANDOM=DPRAND()
+                 J4 = RANDOM*( NTYPEA-NFREEZETYPEA ) + 1 + NFREEZE
+                 J1 = FROZENLIST(J4)
+               ELSE
+                 RANDOM=DPRAND()
+                 J1 = RANDOM*NTYPEA + 1
+                 RANDOM=DPRAND()
+                 J2 = RANDOM*(NATOMS-NTYPEA) + 1 + NTYPEA
+               ENDIF
+               !WRITE(MYUNIT,*) "trying exchange ", J1, J2, I
+               !IF ( FROZEN(J1) .OR. FROZEN(J2) .OR. J1 .GT. NTYPEA .OR. J2 .LE.  NTYPEA ) THEN
+                 !WRITE(*,*) "problem with binary_exab", j1, j2, frozen(j1), frozen(j2), nfreeze
+                 !CALL EXIT()
+               !endif
+               !exchange the xyz coordinates of J1 and J2
+               DUMMY = X(J1)
+               X(J1) = X(J2)
+               X(J2) = DUMMY
+               DUMMY = Y(J1)
+               Y(J1) = Y(J2)
+               Y(J2) = DUMMY
+               DUMMY = Z(J1)
+               Z(J1) = Z(J2)
+               Z(J2) = DUMMY
+            ELSEIF (.NOT.((MYNODE.EQ.0).AND.RESERVOIRT)) THEN
+               DO K=1,NATOMS
+                  RANDOM=DPRAND()
+                  X(K) = X(K) + 2.0D0*RANDOM*STEP(MYNODE+1)-STEP(MYNODE+1)  
+                  RANDOM=DPRAND()
+                  Y(K) = Y(K) + 2.0D0*RANDOM*STEP(MYNODE+1)-STEP(MYNODE+1)  
+                  RANDOM=DPRAND()
+                  Z(K) = Z(K) + 2.0D0*RANDOM*STEP(MYNODE+1)-STEP(MYNODE+1)  
+               ENDDO
+            ELSE
+!
+! This is the case where we select a potential energy bin for node 0 from a reservoir.
+!
+               RANDOM=DPRAND()
+               DUMMY=0.0D0
+               NCHOSEN=-1
+               DO K=1,NENRPER
+                  DUMMY=DUMMY+PEQV(K)
+                  IF (RANDOM.LE.DUMMY) THEN
+                     VNEW=PTEMIN+(K-0.5D0)*PEINT
+                     NCHOSEN=K
+                     EXIT
+                  ENDIF 
+               ENDDO
+               IF (NCHOSEN.EQ.-1) THEN
+                  WRITE(MYUNIT,'(A)') 'bspt> ERROR *** PE bin not selected'
+                  STOP
+               ENDIF
+               WRITE(MYUNIT,'(A,I6,A,G20.10)') 'bspt> Selected bin ',NCHOSEN,' with PE=   ',VNEW
+            ENDIF
+         ENDIF
+         OUTSIDE=.FALSE.
+         IF (.NOT.((MYNODE.EQ.0).AND.RESERVOIRT)) THEN
+            IF (.NOT.(CHRMMT.OR.MODEL1T.OR.PERCOLATET.OR.PERIODIC)) THEN
+               cloop: DO K=1,NATOMS
+                  DIST=X(K)**2+Y(K)**2+Z(K)**2
+                  IF (DIST.GT.RADIUS) THEN
+                     IF (MOD(I-1.0D0,PRTFRQ*1.0D0).EQ.0.0D0) WRITE(MYUNIT,'(A,I6,A)') 'bspt> Perturbed atom ',K,
+     &                    ' outside container, recount previous configuration results'
+                     XOUT=XOUT+1.0D0
+                     OUTSIDE=.TRUE.
+                     RECOUNT=.TRUE. ! The right way to deal with rejected steps!
+                     EXIT cloop
+                  ENDIF
+               ENDDO cloop
+            ENDIF
+
+            IF (FREEZE) THEN
+               DO J1=1,NFREEZE
+                  J2=FROZENLIST(J1)
+                  X(J2)=XO(J2)
+                  Y(J2)=YO(J2)
+                  Z(J2)=ZO(J2)
+               ENDDO
+            ENDIF
+
+            DO K=1,NATOMS
+               COORDS(3*(K-1)+1,MYNODE+1)=X(K)
+               COORDS(3*(K-1)+2,MYNODE+1)=Y(K)
+               COORDS(3*(K-1)+3,MYNODE+1)=Z(K)
+            ENDDO
+
+            IF (PERCOLATET) THEN
+               CALL PERC(COORDS(1:3*NATOMS,MYNODE+1),NATOMS,PERCCUT,PERCT,DEBUG,MYUNIT,RIGID)
+               IF (.NOT.PERCT) THEN
+                  IF (MOD(I-1.0D0,PRTFRQ*1.0D0).EQ.0.0D0) WRITE(MYUNIT,'(A,I6,A)') 
+     &                 'bspt> After step system is not a percolating network, recount previous configuration results'
+                  XOUT=XOUT+1.0D0
+                  OUTSIDE=.TRUE.
+                  RECOUNT=.TRUE. ! The right way to deal with rejected steps!
+               ENDIF
+            ENDIF
+!
+! js850> Check to see if RESTRICTREGION constraints have been violated - if they have, reject the step
+!
+            IF ( RESTRICTREGION ) THEN
+              !RESTRICTREGIONTEST=.FALSE.
+              DO J1=1,NATOMS
+                IF ( .NOT. FROZEN(J1) .AND. .NOT. HARMONICFLIST(J1) 
+     &       .AND. .NOT. DONTMOVE(J1) ) THEN
+                  RRX = ( X(J1)-RESTRICTREGIONX0 )
+                  RRY = ( Y(J1)-RESTRICTREGIONY0 )
+                  RRZ = ( Z(J1)-RESTRICTREGIONZ0 )
+                  RRX = RRX - ANINT(RRX/BOXLX)*BOXLX
+                  RRY = RRY - ANINT(RRY/BOXLY)*BOXLY
+                  IF ( RESTRICTCYL ) THEN
+                    RRZ = 0
+                    RRR = DSQRT(RRX**2+RRY**2 )
+                  ELSE
+                    RRZ = RRZ - ANINT(RRZ/BOXLZ)*BOXLZ
+                    RRR = DSQRT(RRX**2+RRY**2+RRZ**2 )
+                  ENDIF
+                  IF ( RRR > RESTRICTREGIONRADIUS ) THEN
+                    RECOUNT=.TRUE.
+                    WRITE(MYUNIT, *) 'bspt> restrictregion> rejecting step ', I
+                    !GOODSTRUCTURE=.FALSE.
+                    !RESTRICTREGIONTEST=.TRUE.
+                    EXIT !exit loop
+                  ENDIF
+                ENDIF
+              ENDDO
+            ENDIF
+         ENDIF
+!
+! At this point all we have done is take a step. The perturbed coordinates are in both
+! COORDS and X, Y, Z. The old coordinates are in XO, YO, ZO. 
+! For node 0 and reservoir, we have instead chosen a PE bin.
+!
+! New and old quench energies will be in        VMINNEW VMINOLD
+! New and old instantaneous energies will be in    VNEW    VOLD
+!
+         IF (RECOUNT) THEN
+            VNEW=0.0D0
+         ELSEIF (.NOT.((MYNODE.EQ.0).AND.RESERVOIRT)) THEN
+            CALL POTENTIAL(COORDS(:,MYNODE+1),GRAD,POTEL,.TRUE.,.FALSE.)
+            VNEW=POTEL
+            IF (.NOT.MINDENSITYT) THEN
+               WCOMP=(VNEW-VOLD)*BETA(MYNODE) ! use difference in instantaneous energies
+               W=MIN(1.0D0,EXP(-WCOMP))
+               W=MIN(1.0D0,CANDIDATEWEIGHT*EXP(-WCOMP))
+               RANDOM=DPRAND()
+               IF (RANDOM.GT.W) RECOUNT=.TRUE. ! RECOUNT is initialised to .FALSE. at the top of the loop
+               IF (JUMPT)  WRITE(MYUNIT, '(A,4G20.10,L5)') 'bspt> VOLD,VNEW,W,RANDOM,RECOUNT=',VOLD,VNEW,W,RANDOM,RECOUNT
+            ENDIF
+         ENDIF
+         IBININDEX=INT((VNEW-PTEMIN)/PEINT)+1
+         IF (BSPT.AND.((IBININDEX.GT.NENRPER).OR.(IBININDEX.LT.1))) THEN
+            IF (.NOT.MINDENSITYT) RECOUNT=.TRUE.
+!           RECOUNT=.TRUE.
+            IF (.NOT.OUTSIDE) NOUTPEBIN=NOUTPEBIN+1
+         ENDIF
+!
+! Quenching part if required.
+! COORDSO saves the perturbed coordinates before the quench in order to calculate
+! a quench distance. Should no longer be needed. COORDS are used as scratch for quenches.
+!
+         COORDSO(:,MYNODE+1)=COORDS(:,MYNODE+1) 
+         IF ((RECOUNT.AND.BSPT).OR.(I.LE.NEQUIL+PTSTEPS)) THEN
+            VMINNEW=0.0D0
+            LBFGS_ITERATIONS=0
+         ENDIF
+         IF (MINDENSITYT.OR.(I.GT.NEQUIL+PTSTEPS)) THEN
+            IF ((.NOT.RECOUNT).AND.BSPT) THEN 
+               IF (MOD(I,1.0D0*QUENCHFRQ).EQ.1.0D0*0) THEN 
+                  IF ((MYNODE.EQ.0).AND.RESERVOIRT) THEN
+                     WRITE(MYUNIT,'(A)') 'bspt> Reservoir not coded yet for BSPT - quit'
+                     VMINNEW=0.0D0
+                     LBFGS_ITERATIONS=0
+                     EVAPREJECT=.FALSE.
+                     CONVERGED=1
+                     POTEL=HUGE(1.0D0)
+                     STOP
+                  ELSE
+!                    WRITE(MYUNIT, '(A)') 'bspt> calling quench'
+                     IF (CHRMMT.AND.ACESOLV) NCHENCALLS=ACEUPSTEP-1
+                     CALL QUENCH(.FALSE.,MYNODE+1,LBFGS_ITERATIONS,DUMMY,NDUMMY,CONVERGED,COORDS(:,MYNODE+1),DOSSTATS)
+                     IF (CONVERGED.NE.1) WRITE(MYUNIT, '(A)') 'bspt> WARNING - quench did not converge' 
+                     VMINNEW=POTEL
+                     NQ(MYNODE+1)=NQ(MYNODE+1)+1
+                     MINCOORDS(:,MYNODE+1)=COORDS(:,MYNODE+1) ! MINCOORDS contains quench coords
+                  ENDIF
+               ELSE
+                  VMINNEW=0.0D0
+                  LBFGS_ITERATIONS=0
+                  EVAPREJECT=.FALSE.
+                  CONVERGED=1
+                  POTEL=HUGE(1.0D0)
+               ENDIF
+            ELSEIF (RECOUNT.AND.BSPT.AND.(VMINOLD.EQ.0.0D0).AND.(MOD(I,1.0D0*QUENCHFRQ).EQ.0.0D0)) THEN
+!
+! We might not have quenched at the step to be recounted, so we have to do so here.
+!
+               IF (DEBUG) WRITE(MYUNIT, '(A,G20.10,A)') 'bspt> recounting step for previous configuration with VMINOLD=',
+     &                                     VMINOLD,' need to call quench'
+               DO K=1,NATOMS
+                 COORDS(3*(K-1)+1,MYNODE+1)=XO(K)
+                 COORDS(3*(K-1)+2,MYNODE+1)=YO(K)
+                 COORDS(3*(K-1)+3,MYNODE+1)=ZO(K)
+               ENDDO
+!              WRITE(MYUNIT, '(A)') 'bspt> calling quench for recount'
+               IF(CHRMMT.AND.ACESOLV) NCHENCALLS=ACEUPSTEP-1
+               CALL QUENCH(.FALSE.,MYNODE+1,LBFGS_ITERATIONS,DUMMY,NDUMMY,CONVERGED,COORDS(:,MYNODE+1),DOSSTATS)
+               NQ(MYNODE+1)=NQ(MYNODE+1)+1
+               MINCOORDS(:,MYNODE+1)=COORDS(:,MYNODE+1) ! MINCOORDS contains quench coords
+               VMINOLD=POTEL
+               IF (CONVERGED.NE.1) WRITE(MYUNIT, '(A)') 'bspt> WARNING - quench did not converge' 
+               IF (DEBUG) WRITE(MYUNIT, '(A,G20.10)') 'bspt> VMINOLD set to ',VMINOLD
+            ENDIF
+         ENDIF
+!
+! If either the PE (VNEW) or quench energy (VMINNEW) is out of range of the histogram
+! then we may reject the step and recount the previous one.
+! BININDEX for quench bin
+! IBININDEX for instantaneous bin
+!
+         IF (BSPT.AND.((I.GT.NEQUIL+PTSTEPS).OR.(MINDENSITYT)).AND.(MOD(I,1.0D0*QUENCHFRQ).EQ.0.0D0)) THEN
+            BININDEX=INT((VMINNEW-HISTMIN)/HISTINT)+1
+            IF ((BININDEX.GT.HBINS).OR.(BININDEX.LT.1)) THEN
+               RECOUNT=.TRUE.
+               IF (.NOT.OUTSIDE) NOUTQBIN=NOUTQBIN+1
+            ENDIF
+         ENDIF
+         IF (MINDENSITYT) THEN
+            WCOMP=(VMINNEW-VMINOLD)*BETA(MYNODE) ! use difference in quench energies for MINDENSITYT
+            W=MIN(1.0D0,EXP(-WCOMP))
+            W=MIN(1.0D0,CANDIDATEWEIGHT*EXP(-WCOMP))
+            RANDOM=DPRAND()
+            IF (RANDOM.GT.W) RECOUNT=.TRUE. 
+         ENDIF
+
+         VMINNEWSAVE=VMINNEW
+         LBFGS_ITERATIONSSAVE=LBFGS_ITERATIONS
+         VNEWSAVE=VNEW        ! this value is saved so it can be printed if the step is rejected
+         IF ((CONVERGED.NE.1).OR.EVAPREJECT) RECOUNT=.TRUE. ! reject and recount
+         IF (RECOUNT) THEN ! reject move
+            DO K=1, NATOMS
+               X(K)=XO(K)
+               Y(K)=YO(K)
+               Z(K)=ZO(K)
+            ENDDO
+            DO K=1,NATOMS
+              COORDS(3*(K-1)+1,MYNODE+1)=X(K)
+              COORDS(3*(K-1)+2,MYNODE+1)=Y(K)
+              COORDS(3*(K-1)+3,MYNODE+1)=Z(K)
+            ENDDO
+            VMINNEW=VMINOLD
+            VNEW=VOLD
+            DOSSTATS(1:MAXIT,1:2)=DOSSTATSO(1:MAXIT,1:2)
+            LBFGS_ITERATIONS=LBFGS_ITERATIONSO
+            IF (.NOT.FITS) NOUT(MYNODE)=NOUT(MYNODE)+1
+         ELSE ! accept move
+            NACCEPTPT(MYNODE)=NACCEPTPT(MYNODE)+1.0D0
+            IACCEPT(MYNODE)=IACCEPT(MYNODE)+1
+            IF (CANDIDATELISTT.AND.(I.GT.NEQUIL+PTSTEPS)) THEN
+               CANDIDATENUM(BININDEX)=CANDIDATENUM(BININDEX)+1
+               NDUMMY=MOD(CANDIDATENUM(BININDEX),NCANDIDATES) ! maintain cyclic list
+               IF (NDUMMY.EQ.0) NDUMMY=NCANDIDATES
+               DO K=1,NATOMS
+                  CANDIDATECRD(3*(K-1)+1,NDUMMY,BININDEX)=X(K)
+                  CANDIDATECRD(3*(K-1)+2,NDUMMY,BININDEX)=Y(K)
+                  CANDIDATECRD(3*(K-1)+3,NDUMMY,BININDEX)=Z(K)
+               ENDDO
+               CANDIDATEPE(NDUMMY,BININDEX)=VNEWSAVE
+               CANDIDATET(NDUMMY,BININDEX)=TEMPTRAJ(MYNODE)
+               WRITE(MYUNIT,'(2(A,I8))') 'bspt> Adding structure to candidate list entry ',
+     &                                   NDUMMY,' for quench bin ',BININDEX
+            ENDIF
+            IF ( BINARY_EXAB .AND. (MOD(I-1.0D0,BINARY_EXAB_FRQ*1.0D0).EQ.0.0D0) ) EXAB_ACC = EXAB_ACC + 1
+         ENDIF
+         SDUMMY='ACC'
+         IF (RECOUNT) SDUMMY='REJ'
+         IF (MOD(I-1.0D0*1,1.0D0*PRTFRQ).EQ.1.0D0*0) THEN
+            IF ( PTMC .AND. .NOT. BSPT ) THEN !js850> no need to print energies of minima
+               WRITE(MYUNIT, '(F15.1,,A,F20.10,A,F20.10,A,I6,1X,A)') 
+     &         I,' Vn=', VNEWSAVE,' Vo=',VOLD,' iter ',
+     &         LBFGS_ITERATIONSSAVE,TRIM(ADJUSTL(SDUMMY))
+            ELSE
+               WRITE(MYUNIT, '(F15.1,A,G16.6,A,G16.6,A,G16.6,A,G16.6,A,I6,1X,A)') 
+     &         I,' En= ', VMINNEWSAVE, ' Eo= ',VMINOLD, ' Vn=', VNEWSAVE,' Vo=',VOLD,' iter ',
+     &         LBFGS_ITERATIONSSAVE,TRIM(ADJUSTL(SDUMMY))
+            ENDIF
+         ENDIF
+         IF (DEBUG) THEN
+            IF (.NOT.((MYNODE.EQ.0).AND.RESERVOIRT)) THEN
+               CALL POTENTIAL(COORDS(:,MYNODE+1),GRAD, POTEL, .TRUE., .FALSE.)
+               WRITE(MYUNIT,'(A,G20.10)') 'bspt> potential energy after acc/rej=',POTEL
+            ELSE
+               WRITE(MYUNIT,'(A,G20.10)') 'bspt> potential energy after acc/rej=',VNEW
+            ENDIF
+         ENDIF
+         CALL FLUSH(MYUNIT)
+!
+!  At this point the quench and instantaneous energies for the current
+!  configuration in the Markov chain are VMINNEW and VNEW.
+!
+!  QUENCHFRQ must be initialised to one for PTMC to avoid division by zero!
+!
+         IF (MOD(I,1.0D0*QUENCHFRQ).EQ.1.0D0*0) BININDEX=INT((VMINNEW-HISTMIN)/HISTINT)+1
+         IBININDEX=INT((VNEW-PTEMIN)/PEINT)+1
+!
+!  Must not accumulate statistics until we have equilibrated for NEQUIL steps.
+!
+         IF (I.GT.NEQUIL) THEN
+            IF (BSPT.AND.(MOD(I,1.0D0*QUENCHFRQ).EQ.0.0D0).AND.(I.GT.NEQUIL+PTSTEPS)) THEN 
+
+               IF (CANDIDATELISTT.AND.(MOD(I,1.0D0*CANDIDATEINT*1.0D0).EQ.0.0D0)) THEN
+!
+!  Update candidate structures and information on disk. Could replace by MPI?
+!
+                  WRITE(FILENAME101,'(I3)') MYNODE+1 
+                  FILENAME101=TRIM(ADJUSTL(FILENAME101)) // '/configurations'
+                  TEMPUNIT=GETUNIT()
+                  OPEN(UNIT=TEMPUNIT,FILE=FILENAME101,STATUS='UNKNOWN')
+                  DO K=1,HBINS
+                     IF (CANDIDATENUM(K).EQ.0) CYCLE
+                     WRITE(TEMPUNIT,'(2I8,2000G20.10)') K,CANDIDATENUM(K),CANDIDATEPE(1:NCANDIDATES,K),
+     &                                                CANDIDATET(1:NCANDIDATES,K)
+                     WRITE(TEMPUNIT,'(3G20.10)') CANDIDATECRD(1:3*NATOMS,1:NCANDIDATES,K)
+                  ENDDO
+                  CLOSE(TEMPUNIT)
+               ENDIF
+
+               IF (BINSTRUCTURES.AND.(MOD(I, 1.0D0*SAVENTH).EQ.1.0D0*0).AND.(.NOT.RECOUNT)) THEN 
+                  CALL SAVEBINSTRUCTURESMPI(POTEL,MINCOORDS(:,MYNODE+1),BININDEX,.TRUE.,MYNODE,NEWENERGY,MYUNIT)
+!                 IF (NEWENERGY) THEN 
+!                     MINIMANUMBER(BININDEX, MYNODE)=MINIMANUMBER(BININDEX, MYNODE)+1
+!                 ENDIF
+               ENDIF
+
+            ENDIF
+!           IF (BSPT.AND.(MOD(I,1.0D0*QUENCHFRQ).EQ.0.0D0).AND.(I.GT.NEQUIL+PTSTEPS)) THEN
+!              IF ((BININDEX.GT.HBINS).OR.(BININDEX.LT.1)) GOTO 888
+!           ENDIF
+!           IF ((IBININDEX.GT.NENRPER).OR.(IBININDEX.LT.1)) GOTO 888
+
+!
+! Must protect histograms from out-of-bounds error if we are not recounting.
+!
+            IF ((IBININDEX.LE.NENRPER).AND.(IBININDEX.GE.1)) THEN
+               PEVISITS(IBININDEX,MYNODE)=PEVISITS(IBININDEX,MYNODE)+1.0D0
+            ENDIF
+            IF (BSPT.AND.(MOD(I,1.0D0*QUENCHFRQ).EQ.0.0D0).AND.(I.GT.NEQUIL+PTSTEPS)) THEN ! otherwise BININDEX could be out of range
+               IF ((BININDEX.LE.HBINS).AND.(BININDEX.GE.1)) THEN
+                  QVISITS(BININDEX,MYNODE)=QVISITS(BININDEX,MYNODE)+1.0D0
+                  IF ((IBININDEX.LE.NENRPER).AND.(IBININDEX.GE.1)) THEN
+                     PEVISITS2(IBININDEX,BININDEX,MYNODE)=PEVISITS2(IBININDEX,BININDEX,MYNODE)+1
+                  ENDIF
+               ENDIF
+            ENDIF
+!
+! at this point the state points are saved in the following variables (from what
+! I can tell -- js850).  For BSPT COORDS is sometimes quenched.
+!  ---The saved markov state unquenched:
+!              ???            energy=VOLD
+!  ---The saved markov state quenched: (or unquenched if PTMC)
+!              XO, YO, ZO?    energy=VMINOLD
+!  ---After the step, but unquenched:
+!              COORDSO        energy=VNEWSAVE
+!  ---After the quench:
+!              MINCOORDS?     energy=VMINNEWSAVE
+!  ---The current markov state unquenched: i.e. after the step was accepted or rejected.
+!              X, Y, Z?       energy=VNEW
+!  ---The current markov state quenched (or unquenched if PTMC): i.e. after the step was accepted or rejected.
+!              COORDS?        energy=VMINNEW
+!
+!
+! Should take out the distance if we aren't going to use it DJW
+!
+            IF (BSPT.AND.(MOD(I,1.0D0*QUENCHFRQ).EQ.1.0D0*0).AND.(I.GT.NEQUIL+PTSTEPS)) THEN
+               DISTANCEOLD=CALCULATEDDISTANCE(COORDS(:,MYNODE+1), COORDSO(:,MYNODE+1))
+               DISTANCE(BININDEX,MYNODE)=DISTANCE(BININDEX,MYNODE)+DISTANCEOLD
+            ENDIF
+
+! js850> PTMCDUMPSTRUCT
+           IF ( PTMCDUMPSTRUCT .AND. (MOD(I-1.0D0,PTMCDS_FRQ*1.0D0).EQ.0.0D0) ) THEN
+             WRITE(FILENAME106,*) 'dumpstruct.'
+             WRITE(SDUMMY,'(I3)') MYNODE+1 
+             FILENAME106=TRIM(ADJUSTL(FILENAME106)) // TRIM(ADJUSTL(SDUMMY))
+             TEMPUNIT=GETUNIT()
+             IF ( PTMCDS_NEW .AND. BSPTRESTART ) THEN 
+               OPEN(UNIT=TEMPUNIT,FILE=FILENAME106, STATUS="unknown", form="formatted")
+               PTMCDS_NEW = .FALSE.
+             ELSE
+               OPEN(UNIT=TEMPUNIT,FILE=FILENAME106, STATUS="unknown", form="formatted", ACCESS="APPEND")
+             END IF
+             WRITE(TEMPUNIT,*) NATOMS
+             WRITE(TEMPUNIT,*) VNEW, I
+             DO J1=1,NATOMS
+               WRITE(TEMPUNIT,'(A,3F20.10)') 'LA  ', COORDS( 3*(J1-1)+1, MYNODE+1), 
+     &          COORDS( 3*(J1-1)+2, MYNODE+1), COORDS( 3*(J1-1)+3, MYNODE+1)
+             END DO
+             CLOSE(TEMPUNIT)
+           ENDIF
+!js850> OVERLAP keyword
+           IF ( OVERLAPK .AND. (MOD(I-1.0D0,OVERLAP_FRQ*1.0D0).EQ.0.0D0) ) THEN
+              OVERLAP_COUNT = OVERLAP_COUNT +1
+              CALL OVERLAP_GET_OVERLAP( COORDS(1:3*NATOMS, MYNODE+1), OVERLAP_VALA, OVERLAP_VALB, OVERLAP_VALAB)
+              CALL OVERLAP_GET_OVERLAP2( COORDS(1:3*NATOMS, MYNODE+1), 
+     &                  OVERLAP_VAL2A, OVERLAP_VAL2B, OVERLAP_VAL2AB, 0.35D0)
+              CALL OVERLAP_GET_OVERLAP2_R( COORDS(1:3*NATOMS, MYNODE+1), 
+     &                  OVERLAP_VAL2RA, OVERLAP_VAL2RB, OVERLAP_VAL2RAB, 0.35D0)
+              IF ( PTMC .AND. .NOT. BSPT ) THEN
+!
+! Print the quenched overlap also.  If a normal PTMC run then
+! quench, using MINCOORDS as scratch space. The quenched energy
+! will be in POTEL because QUENCH has access to POTEL through a
+! common block
+!
+! WARNING, QUENCH has access to COORDS through commons.mod. IF
+! NORESET is false (the default) then COORDS will contain the
+! quenched coordinates.  Currently this is not a problem because
+! the very next step resets COORDS to X,Y,Z, but it's definitely
+! not optimal.  Can fix it in a hacky way by changing NORESET
+! to .TRUE., then changing it back.  What else is changed by QUENCH?
+!
+                 CALL MYCPU_TIME(TIMESTART)
+                 NORESET_TEMP = NORESET
+                 NORESET = .TRUE.
+                 CALL QUENCH(.FALSE.,MYNODE+1,LBFGS_ITERATIONS,DUMMY,NDUMMY,CONVERGED,MINCOORDS(:,MYNODE+1),DOSSTATS)
+                 NORESET = NORESET_TEMP
+                 NQ(MYNODE+1)=NQ(MYNODE+1)+1
+                 OVERLAP_TIMETOT = OVERLAP_TIMETOT + (DUMMY-TIMESTART)
+                 IF (.TRUE.) THEN !print some info about the quench
+                    IF (CONVERGED.NE.1) WRITE(MYUNIT, '(A)') 'bspt> WARNING - quench did not converge' 
+                    WRITE(MYUNIT,'(A,F20.10,A,I5,A,G12.5,A,G20.10,A,F11.1)') 'bspt> overlap> E=',
+     &                 POTEL,' steps=',LBFGS_ITERATIONS,' RMS=',RMS,' unquenched E=',VNEW,' ttot=',OVERLAP_TIMETOT
+!                   WRITE(MYUNIT,'(A,F20.10,A,I5,A,G12.5,A,G20.10,A,F13.3)') ' E=',
+!    &                 POTEL,' steps=',LBFGS_ITERATIONS,' RMS=',RMS,' unquenched E=',VNEW,' t=',DUMMY-TIMESTART
+                 ENDIF
+                 CALL OVERLAP_GET_OVERLAP( MINCOORDS(1:3*NATOMS, MYNODE+1), OVERLAP_VALQA, OVERLAP_VALQB, OVERLAP_VALQAB )
+                 CALL OVERLAP_GET_OVERLAP2( MINCOORDS(1:3*NATOMS, MYNODE+1), OVERLAP_VALQ2A, 
+     &                     OVERLAP_VALQ2B, OVERLAP_VALQ2AB, 0.2D0 )
+                 CALL OVERLAP_GET_OVERLAP2_R( MINCOORDS(1:3*NATOMS, MYNODE+1), OVERLAP_VALQ2RA, 
+     &                     OVERLAP_VALQ2RB, OVERLAP_VALQ2RAB, 0.2D0 )
+                 WRITE(OVERLAP_UNIT,"(F15.1,4F20.10,14F9.4)") I, OVERLAP_VALAB, VNEW, OVERLAP_VALQAB, POTEL, 
+     &                OVERLAP_VALA, OVERLAP_VALB,
+     &                OVERLAP_VAL2A, OVERLAP_VAL2B, OVERLAP_VAL2AB,
+     &                OVERLAP_VALQ2A, OVERLAP_VALQ2B, OVERLAP_VALQ2AB,
+     &                OVERLAP_VAL2RA, OVERLAP_VAL2RB, OVERLAP_VAL2RAB,
+     &                OVERLAP_VALQ2RA, OVERLAP_VALQ2RB, OVERLAP_VALQ2RAB
+              ELSE
+                 WRITE(OVERLAP_UNIT,"(F15.1,2F20.10)") I, OVERLAP_VALAB, VNEW
+              ENDIF
+              CALL FLUSH(OVERLAP_UNIT)
+           ENDIF
+
+         ENDIF
+!
+! If we are not calculating distances then the following lines may be unnecessary.
+!
+888      DO K=1,NATOMS ! COORDS have to be resaved because we have to use noreset to be able to calc distance 
+            COORDS(3*(K-1)+1,MYNODE+1)=X(K)
+            COORDS(3*(K-1)+2,MYNODE+1)=Y(K)
+            COORDS(3*(K-1)+3,MYNODE+1)=Z(K)
+         ENDDO
+!
+! Save PT configurations for jump move test. This is just for debugging purposes.
+!
+!        IF (CANDIDATELISTT) THEN
+!           IF ((I.LE.NEQUIL+PTSTEPS).AND.(I.GT.NEQUIL).AND.(MOD(I-NEQUIL,10).EQ.0)) THEN
+!              NDUMMY=(I-NEQUIL)/10
+!              PTCAND(NDUMMY,1:3*NATOMS)=COORDS(1:3*NATOMS,MYNODE+1)
+!              PTCANDE(NDUMMY)=VNEW
+!              CALL POTENTIAL(PTCAND(NDUMMY,1:3*NATOMS),GRAD,DUMMY,.TRUE.,.FALSE.)
+!              WRITE(MYUNIT,'(A,I8,2(A,G20.10))') 'bspt> Saving candidate number ',NDUMMY,' energy=',VNEW,' config energy=',DUMMY
+!              IF (ABS(DUMMY-PTCANDE(NDUMMY)).GT.ECONV) THEN
+!                 WRITE(MYUNIT,'(A,2(G20.10))') 'bspt> ERROR *** PE for saved structure and saved PE are ',DUMMY,PTCANDE(NDUMMY)
+!                 STOP
+!              ENDIF
+!           ENDIF
+!        ENDIF
+!
+!  VMINOLD is now set to VMINNEW and VOLD to VNEW.
+!
+         VOLD=VNEW
+         VMINOLD=VMINNEW 
+
+         DOSSTATSO(1:MAXIT,1:2)=DOSSTATS(1:MAXIT,1:2)
+         LBFGS_ITERATIONSO=LBFGS_ITERATIONS
+
+         IF ((I.LE.NEQUIL).AND.(MOD(I,1.0D0*NUPDATE).EQ.1.0D0*0)) THEN ! update MC step size if not fixed
+            WAC=1.0*IACCEPT(MYNODE)/NUPDATE
+            IF (.NOT.(FIXSTEP(MYNODE+1).OR.FIXBOTH(MYNODE+1))) THEN
+               IF (WAC.LT.ACCRAT(MYNODE+1)-0.1D0) THEN
+                  STEP(MYNODE+1)=STEP(MYNODE+1)*0.9D0
+               ENDIF
+               IF (WAC.GT.ACCRAT(MYNODE+1)+0.1D0) THEN
+                  STEP(MYNODE+1)=STEP(MYNODE+1)*1.1D0
+               ENDIF
+            ENDIF
+            IACCEPT(MYNODE)=0
+            WRITE(MYUNIT,'(A,G20.10)') 'bspt> maximum step size is now ',STEP(MYNODE+1)
+         ENDIF
+         E=VNEW
+!
+!  Replica exchange part is done in TRYEXCHANGE.
+!
+         IF (EXCHPROB.GT.0.0D0) CALL TRYEXCHANGE(RANDOM,E,X,Y,Z, 
+     &                    DOSSTATS,DOSSTATSO,XO,YO,ZO,VOLD, 
+     &                    VNEW,GRAD,VNEWSAVE,VMINOLD,VMINNEW,BETA,ITRAJ,ITRAJO,NTOT, 
+     &                    LBFGS_ITERATIONS,NEACCEPT,LBFGS_ITERATIONSO,QV,XDUMMY,PEINT,NCHOSEN)
+
+         IF (I.GT.NEQUIL) THEN 
+            EAV(MYNODE)=EAV(MYNODE)+E
+            EAV2(MYNODE)=EAV2(MYNODE)+E**2
+            IQE=INT((E-PTEMIN)/DHISTE+1)
+            IF (IQE.GT.0.AND.IQE.LT.NHISTE) THEN
+               NHISTQE(IQE,MYNODE)=NHISTQE(IQE,MYNODE)+1
+            ENDIF
+            DO K=1,NATOMS
+               Q(1,K)=X(K)
+               Q(2,K)=Y(K)
+               Q(3,K)=Z(K)
+            ENDDO
+            IF (PERIODIC.AND.CALCQT) THEN
+               CALL QORDER_BLJ(Q,Q4,Q6)
+            ELSE IF (CHRMMT) THEN
+                 IF (ODIHET) CALL CHCALCDIHE(DIHEORDERPARAM,COORDS(1:3*NATOMS,MYNODE+1))
+                 IF (OSASAT) CALL ORDER_SASA(SASAORDERPARAM,RPRO,COORDS(1:3*NATOMS:3,MYNODE+1),
+     1                   COORDS(2:3*NATOMS:3,MYNODE+1),COORDS(3:3*NATOMS:3,MYNODE+1))
+                 IF (ORGYT) CALL CHCALCRGYR(RGYR,COORDS(1:3*NATOMS:3,MYNODE+1),
+     1                   COORDS(2:3*NATOMS:3,MYNODE+1),COORDS(3:3*NATOMS:3,MYNODE+1),.FALSE.) 
+                 IF (OEINTT) CALL CHCALCEINT(EINT,COORDS(1:3*NATOMS:3,MYNODE+1),
+     1                   COORDS(2:3*NATOMS:3,MYNODE+1),COORDS(3:3*NATOMS:3,MYNODE+1),POTEL)
+            ELSEIF (CALCQT) THEN
+               CALL QORDER_LJ(Q,Q4,Q6)
+            ENDIF
+            Q4AV(MYNODE)=Q4AV(MYNODE)+Q4
+            Q4AV2(MYNODE)=Q4AV2(MYNODE)+Q4**2
+            Q6AV(MYNODE)=Q6AV(MYNODE)+Q6
+            Q6AV2(MYNODE)=Q6AV2(MYNODE)+Q6**2
+
+            DIHEORDERPARAM_AV(MYNODE)=DIHEORDERPARAM_AV(MYNODE)+DIHEORDERPARAM
+            DIHEORDERPARAM_AV2(MYNODE)=DIHEORDERPARAM_AV2(MYNODE)+DIHEORDERPARAM**2
+            SASAORDERPARAM_AV(MYNODE)=SASAORDERPARAM_AV(MYNODE)+SASAORDERPARAM
+            SASAORDERPARAM_AV2(MYNODE)=SASAORDERPARAM_AV2(MYNODE)+SASAORDERPARAM**2
+            RGYR_AV(MYNODE)=RGYR_AV(MYNODE)+RGYR
+            RGYR_AV2(MYNODE)=RGYR_AV2(MYNODE)+RGYR**2
+            EINT_AV(MYNODE)=EINT_AV(MYNODE)+EINT
+            EINT_AV2(MYNODE)=EINT_AV2(MYNODE)+EINT**2
+            IF (CHRMMT) THEN
+               IF (ODIHET) THEN
+                  IQ4=INT((DIHEORDERPARAM-DIHEORDERPARAM_MIN)/DDIHE+1)
+                  IF (IQ4.GT.0.AND.IQ4.LT.NHIST) THEN
+                     NHISTQ4(IQ4,MYNODE)=NHISTQ4(IQ4,MYNODE)+1
+                  ENDIF
+                  IQ6=INT((SASAORDERPARAM-SASAORDERPARAM_MIN)/DSASA+1)             
+                  IF (IQ6.GT.0.AND.IQ6.LT.NHIST) THEN
+                     NHISTQ6(IQ6,MYNODE)=NHISTQ6(IQ6,MYNODE)+1
+                  ENDIF
+               ELSE IF (ORGYT) THEN
+                  IQ4=INT((RGYR-RGYR_MIN)/DRGYR+1)
+                  IF (IQ4.GT.0.AND.IQ4.LT.NHIST) THEN
+                     NHISTQ4(IQ4,MYNODE)=NHISTQ4(IQ4,MYNODE)+1
+                  ENDIF
+                  IQ6=INT((EINT-EINT_MIN)/DEINT+1)             
+                  IF (IQ6.GT.0.AND.IQ6.LT.NHIST) THEN
+                     NHISTQ6(IQ6,MYNODE)=NHISTQ6(IQ6,MYNODE)+1
+                  ENDIF
+               ENDIF 
+            ELSE
+               IQ4=INT(Q4/DQ4+1)
+               IF (IQ4.GT.0.AND.IQ4.LT.NHIST) THEN
+                  NHISTQ4(IQ4,MYNODE)=NHISTQ4(IQ4,MYNODE)+1
+               ENDIF
+               IQ6=INT(Q6/DQ6+1)             
+               IF (IQ6.GT.0.AND.IQ6.LT.NHIST) THEN
+                  NHISTQ6(IQ6,MYNODE)=NHISTQ6(IQ6,MYNODE)+1
+               ENDIF
+            ENDIF
+
+! Free energy statistic
+
+            IF (IQ4.GT.0.AND.IQ4.LT.NHIST.AND.IQ6.GT.0.AND.IQ6.LT.NHIST) THEN
+               NHISTALLQ(IQ4,IQ6,MYNODE)=NHISTALLQ(IQ4,IQ6,MYNODE)+1
+            ENDIF
+            IF (IQ4.GT.0.AND.IQ4.LT.NHIST.AND.IQ6.GT.0.AND.IQ6.LT.NHIST.AND.
+     1         IQE.GT.0.AND.IQE.LT.NHISTE) THEN
+               NHISTGRAND(IQE,IQ4,IQ6,MYNODE)=NHISTGRAND(IQE,IQ4,IQ6,MYNODE)+1
+            ENDIF
+              
+            IENR=IENR+1
+!
+! Dump visits histograms. 
+! 
+            IF (BSPTDUMPFRQ.GT.0) THEN
+               IF (MOD(I,1.0D0*BSPTDUMPFRQ).EQ.0.0D0) THEN
+                  WRITE (ISTR, '(I2,A1)') MYNODE+1
+                  WRITE (SDUMMY, '(F15.1)') I
+                  ISTR=TRIM(ADJUSTL(ISTR)) // '/Visits.his.' // TRIM(ADJUSTL(SDUMMY))
+                  IF (I.GT.NEQUIL) THEN
+                     FILENAME101=TRIM(ADJUSTL(ISTR))
+                     LUNIT=GETUNIT()
+                     OPEN(UNIT=LUNIT,FILE=FILENAME101, STATUS="unknown", form="formatted")
+                     WRITE(LUNIT, '(G20.10)') TEMPTRAJ(MYNODE)
+                     WRITE(LUNIT, '(A)') 'Visits to instantaneous PE bins without quench contributions'
+                     DO K=1, NENRPER
+                        WRITE(LUNIT, '(G20.10,F20.1)') PTEMIN+(K-1)*PEINT,PEVISITS(K,MYNODE)
+                     ENDDO
+                     WRITE(LUNIT, '(A)') 'Visits to quench bins'
+                     DO K=1, HBINS
+                          IF (CANDIDATELISTT) THEN
+                             WRITE(LUNIT, '(G20.10,F20.1,I10)') BINLABEL(K), QVISITS(K,MYNODE), CANDIDATENUM(K)
+                          ELSE
+                             WRITE(LUNIT, '(G20.10,F20.1)') BINLABEL(K), QVISITS(K,MYNODE)
+                          ENDIF
+                     ENDDO
+                     CLOSE(LUNIT)
+                  ENDIF
+
+                  IF (BSPT.AND.(I.GT.NEQUIL+PTSTEPS).AND.(.NOT.MINDENSITYT)) THEN
+                     WRITE (ISTR, '(I2,A1)') MYNODE+1
+                     WRITE (SDUMMY, '(F15.1)') I
+                     ISTR=TRIM(ADJUSTL(ISTR)) // '/Visits2.his.' // TRIM(ADJUSTL(SDUMMY))
+                     FILENAME101=TRIM(ADJUSTL(ISTR))
+                     LUNIT=GETUNIT()
+                     OPEN(UNIT=LUNIT,FILE=FILENAME101,STATUS="unknown",FORM="UNFORMATTED")
+                     WRITE(LUNIT) PEVISITS2(1:NENRPER,1:HBINS,MYNODE)
+                     CLOSE(LUNIT)
+                  ENDIF
+
+                  IF (BINARY_EXAB) WRITE(MYUNIT, '(A,G15.1,A,2G15.1)') "bspt> binary_exab> tried ", 
+     &               EXAB_COUNT, " accepted ", EXAB_ACC, I
+!
+!  Restart information
+!
+                  WRITE (ISTR,'(I2)') MYNODE+1
+                  FILENAME9=TRIM(ADJUSTL(ISTR)) // "/bsptrestart"
+                  !js850> copy #/bsptrestart to #/bsptrestart.save
+                  FILENAME10=TRIM(ADJUSTL(ISTR)) // "/bsptrestart.save"
+                  SDUMMY="cp "//TRIM(ADJUSTL(FILENAME9))//" "//TRIM(ADJUSTL(FILENAME10))
+                  CALL SYSTEM(SDUMMY)
+                  LUNIT=GETUNIT()
+                  OPEN(UNIT=LUNIT,FILE=FILENAME9, STATUS="unknown", form="formatted")
+                  WRITE(LUNIT,'(F20.1,3G20.10,F15.1,5I15)') I,VOLD,VMINOLD,STEP(MYNODE+1),
+     &                                                NACCEPTPT(MYNODE),NEACCEPT,NTOT,NOUTQBIN,NOUTPEBIN,NQ(MYNODE+1)
+                  DO J1=1,NATOMS
+                     WRITE(LUNIT,'(3G25.15)') X(J1),Y(J1),Z(J1)
+                  ENDDO
+                  CLOSE(LUNIT)
+               ENDIF
+            ENDIF
+         ENDIF
+      ENDDO 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+! End of main loop over BSPT or PT steps.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+ 
+! compute the averages over any plain PT steps
+
+      IF (PTSTEPS.GT.0) THEN
+         EAV(MYNODE)=EAV(MYNODE)/PTSTEPS
+         EAV2(MYNODE)=EAV2(MYNODE)/PTSTEPS
+         CV=(EAV2(MYNODE)-EAV(MYNODE)**2)*BETA(MYNODE)**2
+
+         WRITE (ISTR, '(i10)') MYNODE+1
+         FILENAME3=trim(adjustl(istr)) // "/T.Ev.Cv.Ev2.Steps"
+         LUNIT=GETUNIT()
+         OPEN(UNIT=LUNIT,FILE=FILENAME3, STATUS="unknown", form="formatted")
+         IF (CHRMMT) THEN
+            WRITE(LUNIT,'(6G20.10)') TEMPTRAJ(MYNODE),TEMPTRAJ(MYNODE)/0.001987, 
+     &                                EAV(MYNODE), CV, EAV2(MYNODE),PTSTEPS
+         ELSE
+            WRITE(LUNIT,'(5G20.10)') TEMPTRAJ(MYNODE),EAV(MYNODE),CV, EAV2(MYNODE),PTSTEPS
+         ENDIF
+         CALL FLUSH(LUNIT)
+         CLOSE(LUNIT)
+      ENDIF
+
+      Q4AV(MYNODE)=Q4AV(MYNODE)/PTSTEPS
+      Q6AV(MYNODE)=Q6AV(MYNODE)/PTSTEPS
+      Q4AV2(MYNODE)=Q4AV2(MYNODE)/PTSTEPS
+      Q6AV2(MYNODE)=Q6AV2(MYNODE)/PTSTEPS
+      DIHEORDERPARAM_AV(MYNODE)=DIHEORDERPARAM_AV(MYNODE)/PTSTEPS
+      SASAORDERPARAM_AV(MYNODE)=SASAORDERPARAM_AV(MYNODE)/PTSTEPS
+      DIHEORDERPARAM_AV2(MYNODE)=DIHEORDERPARAM_AV2(MYNODE)/PTSTEPS
+      SASAORDERPARAM_AV2(MYNODE)=SASAORDERPARAM_AV2(MYNODE)/PTSTEPS
+      RGYR_AV(MYNODE)=RGYR_AV(MYNODE)/PTSTEPS
+      EINT_AV(MYNODE)=EINT_AV(MYNODE)/PTSTEPS
+      RGYR_AV2(MYNODE)=RGYR_AV2(MYNODE)/PTSTEPS
+      EINT_AV2(MYNODE)=EINT_AV2(MYNODE)/PTSTEPS
+      FQ4=SQRT(Q4AV2(MYNODE)-Q4AV(MYNODE)**2)
+      FQ6=SQRT(Q6AV2(MYNODE)-Q6AV(MYNODE)**2)
+      IF (BINARY .OR. SOFT_SPHERE) THEN  
+         FILENAME4="T.Q4Av.Q6Av.Q4Av2.Q6Av2.Steps."//trim(adjustl(istr))
+         LUNIT=GETUNIT()
+         OPEN(UNIT=LUNIT,FILE=FILENAME4, STATUS="unknown", form="formatted")
+         WRITE(LUNIT,'(6G20.10)') TEMPTRAJ(MYNODE), Q4AV(MYNODE), Q6AV(MYNODE), Q4AV2(MYNODE),Q6AV2(MYNODE), PTSTEPS
+         CLOSE(LUNIT)
+      ENDIF
+      IF (CHRMMT) THEN 
+         IF (ODIHET) THEN 
+            FILENAME4="T.DiheAv.SasaAv.DiheAv2.SasaAv2.Steps."//trim(adjustl(istr))
+            LUNIT=GETUNIT()
+            OPEN(UNIT=LUNIT,FILE=FILENAME4, STATUS="unknown", form="formatted")
+            WRITE(LUNIT,'(6G20.10)') TEMPTRAJ(MYNODE), DIHEORDERPARAM_AV(MYNODE), 
+     &              SASAORDERPARAM_AV(MYNODE), DIHEORDERPARAM_AV2(MYNODE),SASAORDERPARAM_AV2(MYNODE), PTSTEPS
+            CLOSE(LUNIT)
+            ELSE IF (ORGYT) THEN
+            FILENAME4="T.RgyrAv.EintAv.RgyrAv2.Eint2.Steps."//trim(adjustl(istr))
+            LUNIT=GETUNIT()
+            OPEN(UNIT=LUNIT,FILE=FILENAME4, STATUS="unknown", form="formatted")
+            WRITE(LUNIT,'(6G20.10)') TEMPTRAJ(MYNODE), RGYR_AV(MYNODE),EINT_AV(MYNODE), RGYR_AV2(MYNODE),  
+     &              EINT_AV2(MYNODE), PTSTEPS
+            CLOSE(LUNIT)
+         ENDIF
+      ENDIF
+
+      FILENAME5=TRIM(ADJUSTL(ISTR)) // '/profile_E'
+      LUNIT=GETUNIT()
+      OPEN(UNIT=LUNIT,FILE=FILENAME5, STATUS="unknown", form="formatted")
+      DO K=1,NHISTE
+         WRITE(LUNIT,'(2G20.10)') PTEMIN+(K-1)*DHISTE,NHISTQE(K,MYNODE)
+      ENDDO
+      CLOSE(LUNIT)
+
+      IF (BINARY .OR. SOFT_SPHERE) THEN  
+         FILENAME6="profile_Q4."//trim(adjustl(istr))
+         FILENAME7="profile_Q6."//trim(adjustl(istr))
+         LUNIT=GETUNIT()
+         TEMPUNIT=GETUNIT()
+         OPEN(UNIT=LUNIT,FILE=FILENAME6, STATUS="unknown", form="formatted")
+         OPEN(UNIT=TEMPUNIT,FILE=FILENAME7, STATUS="unknown", form="formatted")
+         DO K=1,NHIST
+            WRITE(LUNIT,'(2G20.10)') (K-1)*DQ4,NHISTQ4(K,MYNODE)
+            WRITE(TEMPUNIT,'(2G20.10)') (K-1)*DQ6,NHISTQ6(K,MYNODE)
+         ENDDO
+         CLOSE(LUNIT)
+         CLOSE(TEMPUNIT)
+      ELSE IF (CHRMMT) THEN
+         IF (ODIHET) THEN
+            FILENAME6="profile_dihe."//trim(adjustl(istr))
+            FILENAME7="profile_sasa."//trim(adjustl(istr))
+            LUNIT=GETUNIT()
+            TEMPUNIT=GETUNIT()
+            OPEN(UNIT=LUNIT,FILE=FILENAME6, STATUS="unknown", form="formatted")
+            OPEN(UNIT=TEMPUNIT,FILE=FILENAME7, STATUS="unknown", form="formatted")
+            DO K=1,NHIST
+               WRITE(LUNIT,'(2G20.10)') diheorderparam_min+(K-1)*Ddihe,NHISTQ4(K,MYNODE)
+               WRITE(TEMPUNIT,'(2G20.10)') SASAorderparam_min+(K-1)*Dsasa,NHISTQ6(K,MYNODE)
+            ENDDO
+            CLOSE(LUNIT)
+            CLOSE(TEMPUNIT)
+         ELSE IF (ORGYT) THEN
+            FILENAME6="profile_rgyr."//trim(adjustl(istr))
+            FILENAME7="profile_eint."//trim(adjustl(istr))
+            LUNIT=GETUNIT()
+            TEMPUNIT=GETUNIT()
+            OPEN(UNIT=LUNIT,FILE=FILENAME6, STATUS="unknown", form="formatted")
+            OPEN(UNIT=TEMPUNIT,FILE=FILENAME7, STATUS="unknown", form="formatted")
+            DO K=1,NHIST
+               WRITE(LUNIT,'(2G20.10)') rgyr_min+(K-1)*Drgyr,NHISTQ4(K,MYNODE)
+               WRITE(TEMPUNIT,'(2G20.10)') eint_min+(K-1)*Deint,NHISTQ6(K,MYNODE)
+            ENDDO
+            CLOSE(LUNIT)
+            CLOSE(TEMPUNIT)
+         ENDIF
+      ENDIF
+!
+! Printing summary
+!
+      IF (OVERLAPK) WRITE(MYUNIT, '(A,3G15.3,)') "bspt> overlap> summary ", OVERLAP_TIMETOT, 
+     &          OVERLAP_COUNT, OVERLAP_TIMETOT/OVERLAP_COUNT
+      IF (BINARY_EXAB) WRITE(MYUNIT, '(A,G15.1,A,G15.1)') "bspt> binary_exab> tried ", EXAB_COUNT, " accepted ", EXAB_ACC
+      WRITE(MYUNIT, '(A,F15.1,A,G15.1,A,F15.5,A)') 'bspt> ',NACCEPTPT(MYNODE), ' steps accepted out of ', 
+     &            PTSTEPS+NEQUIL+NQUENCH, ' i.e. ',NACCEPTPT(MYNODE)*100.0D0/(PTSTEPS+NEQUIL+NQUENCH),'%'
+      WRITE(MYUNIT, '(A,G20.10)') 'bspt> Final stepsize ', STEP(MYNODE+1)
+      WRITE(MYUNIT, '(A,G20.10,A,2G20.10,A)') 'bspt> ',NEACCEPT, ' PT exchanges accepted out of ', 
+     &                                                 NTOT,NEACCEPT*100.0D0/(1.0D0*NTOT),' %'
+      IF (BSPT) WRITE(MYUNIT, '(A,G20.10,A,G20.10,A)') 'bspt> ',NOUTQBIN, ' quenches outside quench bin range: ',
+     &                                      NOUTQBIN*100.0D0/(NQUENCH),' %'
+      WRITE(MYUNIT, '(A,I8,A,G20.10,A)') 'bspt> ',NOUTPEBIN, ' potential energies outside bin range: ',
+     &                                      NOUTPEBIN*100.0D0/(PTSTEPS+NEQUIL+NQUENCH),' %'
+      IF (BSPT) THEN
+         IF (PERCOLATET) THEN
+            IF (MINDENSITYT) THEN
+               WRITE(MYUNIT, '(A,G20.10,A,G20.10,A)') 'bspt> ',XOUT, ' steps failed to produce a percolating system: ',
+     &                                         XOUT*100.0D0/(NQUENCH+NEQUIL),' %'
+            ELSE
+               WRITE(MYUNIT, '(A,G20.10,A,G20.10,A)') 'bspt> ',XOUT, ' steps failed to produce a percolating system: ',
+     &                                            XOUT*100.0D0/(NQUENCH),' %'
+            ENDIF
+         ELSE
+            IF (MINDENSITYT) THEN
+               WRITE(MYUNIT, '(A,G20.10,A,G20.10,A)') 'bspt> ',XOUT, ' steps had an atom outside the container: ',
+     &                                            XOUT*100.0D0/(NQUENCH+NEQUIL),' %'
+            ELSE
+               WRITE(MYUNIT, '(A,G20.10,A,G20.10,A)') 'bspt> ',XOUT, ' steps had an atom outside the container: ',
+     &                                            XOUT*100.0D0/(NQUENCH),' %'
+            ENDIF
+         ENDIF
+      ENDIF
+      WRITE(MYUNIT, '(A,I8)') 'bspt> total number of quenches actually required=',NQ(MYNODE+1)
+
+      DO K=1,NATOMS
+         Q(1,K)=X(K)
+         Q(2,K)=Y(K)
+         Q(3,K)=Z(K)
+      ENDDO
+      IF (PERIODIC) THEN
+         CALL QORDER_BLJ(Q,Q4,Q6)
+      ELSE
+         CALL QORDER_LJ(Q,Q4,Q6)
+      ENDIF
+!
+! Dump visits histograms. Energies are written for the middle of the bins.
+! This is the really important part!
+!
+      WRITE (ISTR, '(i10)') MYNODE +1
+      FILENAME101=trim(adjustl(istr)) // "/Visits.his"
+      LUNIT=GETUNIT()
+      OPEN(UNIT=LUNIT,FILE=FILENAME101, STATUS="unknown", form="formatted")
+      WRITE(LUNIT, '(G20.10)') TEMPTRAJ(MYNODE)
+      WRITE(LUNIT, '(A)') 'Visits to instantaneous PE bins without quench contributions'
+      DO K=1, NENRPER
+         WRITE(LUNIT, '(G20.10,F20.1)') PTEMIN+(K-1)*PEINT,PEVISITS(K,MYNODE)
+      ENDDO
+      WRITE(LUNIT, '(A)') 'Visits to quench bins'
+      DO K=1, HBINS
+         IF (CANDIDATELISTT) THEN
+            WRITE(LUNIT, '(G20.10,F20.1,I10)') BINLABEL(K), QVISITS(K,MYNODE), CANDIDATENUM(K)
+         ELSE
+            WRITE(LUNIT, '(G20.10,F20.1)') BINLABEL(K), QVISITS(K,MYNODE)
+         ENDIF
+      ENDDO
+      CLOSE(LUNIT)
+
+      IF (BSPT.AND.(.NOT.MINDENSITYT)) THEN
+         FILENAME101=trim(adjustl(istr)) // "/Visits2.his"
+         LUNIT=GETUNIT()
+         OPEN(UNIT=LUNIT,FILE=FILENAME101,STATUS="unknown",FORM="UNFORMATTED")
+         WRITE(LUNIT) PEVISITS2(1:NENRPER,1:HBINS,MYNODE)
+         CLOSE(LUNIT)
+      ENDIF
+!
+! Dump final restart information.
+!
+      WRITE (ISTR,'(I2)') MYNODE+1
+      FILENAME9=TRIM(ADJUSTL(ISTR)) // "/bsptrestart"
+      !js850> copy #/bsptrestart to #/bsptrestart.save
+      FILENAME10=TRIM(ADJUSTL(ISTR)) // "/bsptrestart.save"
+      SDUMMY="cp "//TRIM(ADJUSTL(FILENAME9))//" "//TRIM(ADJUSTL(FILENAME10))
+      CALL SYSTEM(SDUMMY)
+      LUNIT=GETUNIT()
+      OPEN(UNIT=LUNIT,FILE=FILENAME9, STATUS="unknown", form="formatted")
+      WRITE(LUNIT,'(F20.1,3G20.10,F15.1,5I10)') I,VOLD,VMINOLD,STEP(MYNODE+1),
+     &                                          NACCEPTPT(MYNODE),NEACCEPT,NTOT,NOUTQBIN,NOUTPEBIN,NQ(MYNODE+1)
+      DO J1=1,NATOMS
+         WRITE(LUNIT,'(3G25.15)') X(J1),Y(J1),Z(J1)
+      ENDDO
+      CLOSE(LUNIT)
+
+      IF (OVERLAPK) CLOSE(OVERLAP_UNIT)
+
+      RETURN
+#else
+      RETURN
+#endif
+      END SUBROUTINE PTBASINSAMPLING

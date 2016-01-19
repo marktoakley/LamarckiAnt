@@ -1,0 +1,44 @@
+! This file is copy & paste from the pluto block, all includes
+! Implicit declarations make it close to impossible to find out 
+! what we really need, so better use everything
+             
+      use parameters
+      use system_parameters
+      use control_parameters
+      use polarizabilities
+
+      implicit none
+
+      INCLUDE 'include/maxel'
+      INCLUDE 'include/maxmol'
+      INCLUDE 'include/maxbas'
+      INCLUDE 'include/maxpot'
+      INCLUDE 'include/maxtor'
+      INCLUDE 'include/maxvec'
+      INCLUDE 'include/maxdef'
+      INCLUDE 'include/maxine'
+      INCLUDE 'include/dmasym'
+      INCLUDE 'include/ivec'
+      INCLUDE 'include/time'
+      INCLUDE 'include/erfc'
+      INCLUDE 'include/bascas'
+      INCLUDE 'include/elipse'
+      INCLUDE 'include/pluto'
+      INCLUDE 'include/basis'
+!      INCLUDE 'include/cascls'
+!      INCLUDE 'include/defect'
+      INCLUDE 'include/cntrl'
+      INCLUDE 'include/potent'
+!      INCLUDE 'include/lattis'
+!      INCLUDE 'include/casctl'
+      INCLUDE 'include/mini'
+!      INCLUDE 'include/symm'
+!      INCLUDE 'include/two'
+!      INCLUDE 'include/tor'
+!      INCLUDE 'include/phox'
+      INCLUDE 'include/potcas'
+!      INCLUDE 'include/phoxlt'
+      INCLUDE 'include/dma'
+!      INCLUDE 'include/maxved'
+!      INCLUDE 'include/rtable'
+!      INCLUDE 'include/defphx'

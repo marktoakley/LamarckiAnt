@@ -1,0 +1,15 @@
+add several scripts for submitting and managing parallel jobs
+
+submit_par  : a PBS submit script for submitting a PTMC or BSPT job.  The
+output of the job will be written to directory /scratch/$USER/$PBS_JOBID/ on
+each node.  If the job ends without error the files will be copied back to the
+submit directory.
+
+examine_nodes.sh : a script for managing jobs submitted with submit_par.  Can
+easily copy or delete data from a PTMC job even if the job is spread over many
+nodes.
+
+mygzip.sh : zip the output files from a PTMC run
+
+query_jobs.sh : print the jobid and working directory for every running job.
+

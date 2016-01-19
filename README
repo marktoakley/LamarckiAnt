@@ -1,0 +1,54 @@
+
+Compiling the Wales group codes with cmake
+==========================================
+
+REQUIREMENTS: cmake version 2.8 or higher.
+
+With cmake, the build is done in a separate directory from the source.  
+
+1. Make a build directory (typically [GMIN,OPTIM,PATHSAMPLE]/builds/<compiler>-<description>). 
+
+2. From within that directory, tell cmake what to compile
+
+  $ cmake /path/to/source
+
+3. Build using the automatically generated Makefile
+
+  $ make -j<N>
+
+The -j<N> flag does the compilation in parallel. A good choice is to set <N> slightly greater than
+the number of cores (CPUs) the node you are working on has. 
+
+
+Changing options
+----------------
+You can use the in-terminal gui ccmake to adjust all compilation options.
+This includes which target executables to make (e.g. the amber, charmm versions etc.)
+
+From within the build directory
+
+  $ ccmake .
+
+and follow the on-screen instructions.
+
+You may need to redo the cmake setup
+
+  $ cmake .
+
+
+Choosing the Fortran compiler
+-----------------------------
+The default Fortran compiler is gfortran. To select an alternative, e.g pgf90, ifort or nagfor, 
+the cmake command is modified as follows:
+
+  $ FC=pgf90 cmake /path/to/source/
+
+
+Compiling with MPI
+------------------
+You need to specify the mpi compiler, you need to turn on the MPI precompiler
+flag (this really ought to be done automatically), and you need to tell cmake
+which mpi compiler to use (becuase they are all called mpif90).
+
+  $ FC=mpif90 cmake /path/to/source/ -DWITH_MPI=true -DCOMPILER_SWITCH=pgi
+

@@ -1,0 +1,19 @@
+Warning: /scratch/khs26/svn/GMIN/source/swmod.f90, line 209: Variable LAT referenced but never set
+Warning: /scratch/khs26/svn/GMIN/source/gay-berne.f90, line 1859: Symbol OVERLAPTESTT referenced but never set detected at GAYBERNE@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/SW.f, line 235: Automatic variable R referenced but never set
+Warning: /scratch/khs26/svn/GMIN/source/SW.f, line 235: Automatic variable LVEC referenced but never set
+Warning: /scratch/khs26/svn/GMIN/source/fedor.f, line 2086: Symbol NE referenced but never set detected at END@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/quench.f, line 924: Symbol NDUMMY referenced but never set detected at QUENCH@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/dftb.f, line 1760: Symbol LONG referenced but never set detected at END@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/dftb.f, line 1760: Automatic variable LMC referenced but never set
+Warning: /scratch/khs26/svn/GMIN/source/dftb.f, line 1760: Automatic variable ALPHASUM1 referenced but never set
+Warning: /scratch/khs26/svn/GMIN/source/ptgrp.f, line 1288: Symbol DUMMY referenced but never set detected at END@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/reservoir_utils.f90, line 330: Symbol DISTANCE2 referenced but never set detected at RESERVOIR_CALC_EHSA@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/asaoos.f90, line 543: Symbol J2 referenced but never set detected at ASAOOSPRINT@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/asaoos.f90, line 543: Variable RIJ referenced but never set
+Warning: /scratch/khs26/svn/GMIN/source/rbperm.f90, line 593: Variable QI referenced but never set
+Warning: /scratch/khs26/svn/AMBER/src/sander/pb_direct.f, line 873: Symbol RINV referenced but never set detected at PB_DIRECTWTCUT@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm_mm_div.f, line 320: Symbol INESP referenced but never set detected at END@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm_div.f, line 282: Symbol I referenced but never set detected at QM_DIV@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/align.f, line 298: Variable VECT_AL referenced but never set
+Warning: /scratch/khs26/svn/AMBER/src/sander/align.f, line 298: Variable ROOT referenced but never set

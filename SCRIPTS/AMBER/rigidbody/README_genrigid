@@ -1,0 +1,31 @@
+#Script by Konstantin Roeder kr366
+
+HOW TO USE IT
+
+1. Either start genrigid_input.py or start with options python  genrigid_input.py [pdb name] [coords.inpcrd] [tolerance] [pymol].
+	[pdb name]        required file name
+	[coords.inpcrd]   required file name
+	[tolerance]       tolerance for linearity check (angles need to be between 0 + tolerance and 180 - tolerance to be counted as non-
+			  linear), default 0.01
+	[pymol]           requires pymol installed, 'pymol' loads a graphical representation of the set rigidification
+
+2. Check number of residues and number of atoms, if they are not what they should be, check the input files.
+
+3. If the script detects unknown residues, they will be highlighted next. Only if yes or y is entered residues can be set as normal, all other 
+   keys add these residues to the atomistic list.
+
+4. Select and remove from selection following the script. The residue selections can be either one by one with spaces or using 'r integer1
+   integer2' to indicate the range from integer1 to integer2. If a residue is selected to be atomistic, selecting it again for the local rigid
+   bodies will not change the assignement (this change can only be done by removing it and then add it again).
+
+5. Grouping of the fully rigid region: enter residue by residue or ranges for option 2.
+
+6. Local rigid bodies: peptide bonds will be rigidified for all residues in the local rigid selection. If the neighbouring residue belongs to
+   a fully rigid body, this peptide bond will not be used. If it belongs to an atomistic residue it will be used.
+
+7. Atoms entered for self-made rigid bodies are checked for linearity, double usage of atoms and existence. If one of the checks fails, the   
+   selection is ignored.
+
+HOW TO CHANGE IT
+
+The script relies on two dictionaries: res_dic and atom_dic. All information is stored in them, and they are read into the protein class. Furthermore the rigid bodies are stored in groups (for the fully rigid region, residue ids are stored) and groups_local (residue names, ids and atom ids are stored). The list atoms_used contains all atoms that are already assigned to rigid bodies and needs to be updated for every new rigid body defined.

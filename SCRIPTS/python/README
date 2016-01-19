@@ -1,0 +1,34 @@
+python scripts for interacting with GMIN
+
+Compilation
+-----------
+python setup.py build_ext -i
+
+ptmc
+----
+these are scripts for parallel tempering monte carlo with GMIN
+
+
+makecvplots.py : makes a bunch of heat capacity plots.  It combines the
+Visits.his files in all the subdirectories, and computes and plots the heat
+capacity.  It does this using several subsamples of the existing data so you
+can see how the curve changes with time.  It also uses bootstrap resampling to
+estimate the statistical errors in the heat capacity.  This can compute the
+heat capacity at the replica temperatures or use histogram reweighting to
+estimate the heat capacity at other temperatures.
+
+plot_exchanges.py : this reads the PT exchanges from the output files and plots
+a bunch of useful information.  You can see how the replicas move up and down
+through temperature space, you can see the occupation probability, and the
+exchange probability.  It also estimates how well the replicas are diffusing in
+temperature which is a good measure of equilibration (necessary, but not
+sufficient).
+
+plot_visits.py  : this plots visits histograms so you can ensure you set your
+energy bounds correctly
+
+
+usage :  from the simulation directory.  (-h for more options)
+python ~/svn/SCRIPTS/python/ptmc/makecvplots.py --ndof=<n.d.o.f.>
+python ~/svn/SCRIPTS/python/ptmc/plot_visits.py
+python ~/svn/SCRIPTS/python/ptmc/plot_exchanges.py

@@ -1,0 +1,127 @@
+#!/bin/bash
+
+export shd="`dirname $(readlink -f $0)`"
+export this_script=` basename $0 `
+
+svnr=""
+creation_date=""
+
+log_file=$shd/$this_script.log
+
+define_base_dirs(){
+# {{{
+#
+# fid => FULL_INSTALL_DIR, full path for installation directory
+#
+# id  => INSTALL_DIR, i.e., name for installation directory
+#
+
+prefix=$HOME
+id=svn
+fid=$HOME/$id/ 
+opd=$fid/SCRIPTS/op/
+
+# }}}
+}
+
+display_help(){
+# {{{
+cat << EOF
+=============================================
+SCRIPT NAME: $this_script 
+PROJECT: Wales group software
+PURPOSE: installation 
+DATE CREATED: $creation_date
+SVN REVISION: $svnr
+USAGE: $this_script [ OPTIONS ] 
+
+	OPTIONS:
+
+	============
+	General
+	============
+
+			display the help message
+
+	vm		v(iew) m(yself), i.e., edit this script
+	
+	============
+
+	prefix PREFIX	
+	id IDIR	
+
+	u, unpack	unpack the contents into the installation directory 
+
+REMARKS:
+AUTHOR: O. Poplavskyy
+=============================================
+EOF
+# }}}
+}
+
+define_base_dirs 
+
+[ -z $* ] && ( display_help; exit 0 )
+
+main(){
+# {{{
+
+mkdir -p $fid
+
+#export TMPDIR=`mktemp -d /tmp/selfextract.XXXXXX`
+#rm -rf $TMPDIR
+
+ARCHIVE=`awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' $0`
+
+cat << EOF
+===========================
+Summary of installation
+===========================
+
+Prefix:
+	$prefix
+Installation directory name:
+	$id
+Full installation path:
+	$fid
+EOF
+
+echo "Unpacking to:"
+echo "		$fid"
+
+tail -n+$ARCHIVE $0 | tar xzv -C $fid >& iwg.log
+
+CDIR=`pwd`
+cd $opdir
+ls 
+
+# bu build && bu install
+# bu ifort gmin
+
+# }}}
+}
+
+# main part 
+# {{{
+
+script_opts=( $* )
+define_base_dirs
+
+while [ ! -z "$1" ]; do
+  	case "$1" in
+		  #{{{
+	  	vm) $v $0; exit ;;
+		h) display_help $*; exit ;;
+		prefix) prefix=$2 ;;
+	  	u | unpack) main $1 && exit 0 ;;
+		*) echo "Wrong command! Exiting..."
+	esac
+  	shift
+        #}}}
+done
+
+# }}}
+
+exit 0
+
+__ARCHIVE_BELOW__

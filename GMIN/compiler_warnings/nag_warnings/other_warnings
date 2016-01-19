@@ -1,0 +1,42 @@
+Warning: /scratch/khs26/svn/GMIN/source/ttm3f.f90, line 637: Unused external reference GAMMA4 detected at SMEAR1@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/Farkas.f, line 139: Hardware-imposed alignment of FDENX is non-standard
+Warning: /scratch/khs26/svn/GMIN/source/Farkas.f, line 230: Hardware-imposed alignment of FDENX is non-standard
+Warning: /scratch/khs26/svn/GMIN/source/Farkas.f, line 320: Hardware-imposed alignment of FDENX is non-standard
+Obsolescent: /scratch/khs26/svn/GMIN/source/ptgrp.f, line 1977: Assumed-length CHARACTER function
+Warning: /scratch/khs26/svn/AMBER/src/sander/ew_bspline.f, line 198: Type declaration for generic intrinsic ANINT ignored detected at GET_GRID_WEIGHTS@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/nonbond_list.f, line 2454: Type declaration for generic intrinsic ANINT ignored detected at ADJUST_IMAGCRDS@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/nonbond_list.f, line 2636: Type declaration for generic intrinsic ANINT ignored detected at MAP_COORDS@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/evb_vars.f, line 545: Type declaration for generic intrinsic SQRT ignored detected at DEVIATION@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/evb_vars.f, line 545: Intrinsic function SIZE explicitly typed detected at DEVIATION@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/evb_vars.f, line 545: Type declaration for generic intrinsic ABS ignored detected at DEVIATION@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/evb_vars.f, line 545: Type declaration for generic intrinsic MAXVAL ignored detected at DEVIATION@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/evb_vars.f, line 545: Type declaration for generic intrinsic DOT_PRODUCT ignored detected at DEVIATION@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/evb_vars.f, line 578: Intrinsic function SIZE explicitly typed detected at OUTER_PRODUCT@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/evb_vars.f, line 578: Type declaration for generic intrinsic MATMUL ignored detected at OUTER_PRODUCT@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/amoeba_multipoles.f, line 337: Initialisation expression for ROUTINE truncated
+Warning: /scratch/khs26/svn/AMBER/src/sander/mdread.f: Argument STATEINF (no. 1) in reference to CNSTPHREAD from MDREAD2 has the wrong data type INTEGER (expected CONST_PH_INFO)
+Warning: /scratch/khs26/svn/AMBER/src/sander/runmd.f, line 1327: Inconsistent structure for arg 2 in call to CNSTPHWRITE
+Warning: /scratch/khs26/svn/AMBER/src/sander/nmode.f, line 332: Inconsistent data type INTEGER (previously DOUBLE PRECISION) for argument 8 in reference to MWEIGHT
+Warning: /scratch/khs26/svn/AMBER/src/sander/nmode.f: Argument IW (no. 2) in reference to WRITLW from NMODE has the wrong data type DOUBLE PRECISION (expected INTEGER)
+Warning: /scratch/khs26/svn/AMBER/src/sander/exchange_warshel.f, line 141: Type declaration for generic intrinsic EXP ignored detected at EXCHANGE_WARSHEL@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/exchange_warshel.f, line 141: Type declaration for generic intrinsic SQRT ignored detected at EXCHANGE_WARSHEL@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 233: Inconsistent structure for arg 4 in call to QM2_DERIV_QM_ANALYT
+Warning: /scratch/khs26/svn/AMBER/src/sander/morse_anal2num.f, line 228: Type declaration for generic intrinsic EXP ignored detected at VMORSE@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/cshf.f, line 443: REAL value for INTEGER PARAMETER
+Warning: /scratch/khs26/svn/AMBER/src/sander/exchange_CM.f, line 190: Type declaration for generic intrinsic EXP ignored detected at EXCHANGE_CM@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/exchange_CM.f, line 190: Type declaration for generic intrinsic DOT_PRODUCT ignored detected at EXCHANGE_CM@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/exchange_CM.f, line 190: Type declaration for generic intrinsic MATMUL ignored detected at EXCHANGE_CM@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/setgr.f, line 49: Inconsistent structure for arg 11 in call to RGROUP
+Warning: /scratch/khs26/svn/AMBER/src/sander/setgr.f, line 49: Inconsistent structure for arg 12 in call to RGROUP
+Warning: /scratch/khs26/svn/AMBER/src/sander/exchange_gauss.f, line 133: Type declaration for generic intrinsic EXP ignored detected at EXCHANGE_GAUSS@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/exchange_gauss.f, line 133: Type declaration for generic intrinsic SQRT ignored detected at EXCHANGE_GAUSS@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/morsify.f, line 221: Type declaration for generic intrinsic EXP ignored detected at MORSIFY@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/morsify.f, line 221: Type declaration for generic intrinsic SQRT ignored detected at MORSIFY@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/ew_fft.f: Argument IFAC (no. 5) in reference to CFFTB1 from CFFTB has the wrong data type DOUBLE PRECISION (expected INTEGER)
+Warning: /scratch/khs26/svn/AMBER/src/sander/ew_fft.f: Argument IFAC (no. 5) in reference to CFFTF1 from CFFTF has the wrong data type DOUBLE PRECISION (expected INTEGER)
+Warning: /scratch/khs26/svn/AMBER/src/sander/ew_fft.f: Argument IFAC (no. 3) in reference to CFFTI1 from CFFTI has the wrong data type DOUBLE PRECISION (expected INTEGER)
+Warning: /scratch/khs26/svn/AMBER/src/sander/ew_fft.f: Argument C (no. 2) in reference to CFFTB from PUBZ3D has the wrong data type COMPLEX(KIND(0d0)) (expected DOUBLE PRECISION)
+Warning: /scratch/khs26/svn/AMBER/src/sander/ew_fft.f: Argument C (no. 2) in reference to CFFTF from PUBZ3D has the wrong data type COMPLEX(KIND(0d0)) (expected DOUBLE PRECISION)
+Warning: /scratch/khs26/svn/AMBER/src/sander/ew_box.f, line 906: Type declaration for generic intrinsic ANINT ignored detected at WRAP_TO@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/ew_box.f, line 906: Type declaration for generic intrinsic SIGN ignored detected at WRAP_TO@<end-of-statement>
+

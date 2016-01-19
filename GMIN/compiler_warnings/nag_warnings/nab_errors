@@ -1,0 +1,50 @@
+/scratch/khs26/svn/GMIN/build/NAB/byacc/yacc: w - line 303 of "nabgrm.y", the default action assigns an undefined value to $$
+/scratch/khs26/svn/GMIN/build/NAB/byacc/yacc: 3 shift/reduce conflicts.
+cgen.c: In function ‘CG_gentype’:
+cgen.c:1549:3: warning: format not a string literal and no format arguments [-Wformat-security]
+parse.c: In function ‘fprint_ovalue’:
+parse.c:2048:2: warning: format not a string literal and no format arguments [-Wformat-security]
+./parse:  81 symbols.
+./parse:  18 types, lastuser = 13, v_error = 13.
+./parse:   8 classes.
+./parse:   8 kinds.
+./parse:   3 accesses.
+./parse:  27 attributes.
+./parse:  40 rules.
+./parse:  40 used symbols.
+./parse:  14 used types.
+./parse:   7 used classes.
+./parse:   7 used kinds.
+./parse:   0 errors.
+fd_helix.c: In function ‘put_tmp’:
+fd_helix.c:30:1: warning: format ‘%d’ expects argument of type ‘int’, but argument 5 has type ‘STRING_T *’ [-Wformat]
+fd_helix.c:30:1: warning: format ‘%lf’ expects argument of type ‘double’, but argument 6 has type ‘INT_T’ [-Wformat]
+memutil.c: In function ‘vector’:
+memutil.c:31:10: warning: format ‘%lld’ expects argument of type ‘long long int’, but argument 2 has type ‘size_t’ [-Wformat]
+nmode.c: In function ‘nmode_’:
+nmode.c:927:2: warning: format ‘%d’ expects argument of type ‘int’, but argument 3 has type ‘size_t’ [-Wformat]
+reslib.c: In function ‘addchi2reslib’:
+reslib.c:1216:5: warning: passing argument 6 of ‘chirvol’ from incompatible pointer type [enabled by default]
+chirvol.h:1:6: note: expected ‘double *’ but argument is of type ‘double (*)[3]’
+reslib.c:1216:5: warning: passing argument 7 of ‘chirvol’ from incompatible pointer type [enabled by default]
+chirvol.h:1:6: note: expected ‘double *’ but argument is of type ‘double (*)[3]’
+In file included from sff.c:621:0:
+sff2.c: In function ‘mme2’:
+sff2.c:6713:8: warning: format ‘%lf’ expects argument of type ‘double’, but argument 2 has type ‘int’ [-Wformat]
+traceback.c: In function ‘rt_errormsg’:
+traceback.c:14:2: warning: format not a string literal and no format arguments [-Wformat-security]
+dg_helix.c: In function ‘dg_helix’:
+dg_helix.c:562:1: warning: unknown conversion type character ‘:’ in format [-Wformat]
+dg_helix.c:562:1: warning: unknown conversion type character ‘:’ in format [-Wformat]
+getxyz_from_pdb.c: In function ‘getxyz_from_pdb’:
+getxyz_from_pdb.c:175:1: warning: unknown conversion type character ‘.’ in format [-Wformat]
+getxyz_from_pdb.c:175:1: warning: format ‘%s’ expects argument of type ‘char *’, but argument 2 has type ‘double’ [-Wformat]
+getpdb_rlb.c: In function ‘getpdb_rlb’:
+getpdb_rlb.c:114:9: warning: unknown escape sequence: '\G' [enabled by default]
+na_anal.c: In function ‘local_helical_parameters’:
+na_anal.c:793:18: warning: unknown escape sequence: '\040' [enabled by default]
+na_anal.c:795:1: warning: format not a string literal and no format arguments [-Wformat-security]
+na_anal.c:801:1: warning: format not a string literal and no format arguments [-Wformat-security]
+na_anal.c: In function ‘helix_properties’:
+na_anal.c:896:1: warning: format not a string literal and no format arguments [-Wformat-security]
+na_anal.c:903:1: warning: format not a string literal and no format arguments [-Wformat-security]

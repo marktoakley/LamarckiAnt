@@ -1,0 +1,26 @@
+#!/bin/bash
+#PBS -q l1
+#PBS -j oe
+#PBS -N LJ75.order
+##PBS -l walltime=30:00
+
+cd $PBS_O_WORKDIR
+TMP=/scratch/wales/$PBS_JOBID
+mkdir -p $TMP
+
+cp pathdata $TMP
+cd $TMP
+ln -s $PBS_O_WORKDIR/../min.data min.data
+ln -s $PBS_O_WORKDIR/../points.min points.min
+ln -s $PBS_O_WORKDIR/../min.A min.A
+ln -s $PBS_O_WORKDIR/../min.B min.B
+
+~/bin/PATHSAMPLE > output
+
+cp output $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR
+rm -rf $TMP
+echo
+qstat -f ${PBS_JOBID}@volkhan
+echo
+

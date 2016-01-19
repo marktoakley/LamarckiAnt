@@ -1,0 +1,152 @@
+#!/bin/bash
+
+# directory where this script resides
+export shd="`dirname $(readlink -f $0)`"
+# name of this script 
+export this_script=` basename $0 `
+# main Wales group software directories 
+# {{{
+export wg_dir="$shd/../../"
+export inc_dir="$wg_dir/include/"
+export g_dir="$wg_dir/GMIN/source/"
+svnlog=$inc_dir/SVNLOG
+# }}}
+
+vim_opts="-n -p"
+v="vim $vim_opts"
+
+display_help(){
+# {{{
+cat << EOF
+=============================================
+SCRIPT NAME: $this_script 
+PROJECT: Wales svn repository 
+PURPOSE: work with svn 
+USAGE: $this_script [ OPTIONS ] 
+	OPTIONS:
+
+	============
+	General
+	============
+			display the help message
+	vm		v(iew) m(yself), i.e., edit this script
+	
+	============
+	SVN
+	============
+
+	--info-- 
+
+	s		svn status in the current dir
+	ss		$this_script s | sed -n '/^[A,M,G,C,U]/p'
+	
+	v		give the current svn revision number, by using
+				svn_revision.sh
+
+
+
+	-o OBJ
+
+	l -NUM		see svn history back NUM revisions,
+			starting from the current one. Equivalent to :	
+				svn log -r HEAD:(HEAD-NUM)
+
+	ll NUM		$this_script l -NUM | less
+	i 		svn info \$*
+
+	--updates/commits---
+
+	c		
+	a		svn add \$*
+
+			rm GMIN/source/Makefile
+			$this_script u
+	u		svn update from the top directory \$wg_dir
+
+REMARKS:
+=============================================
+EOF
+# }}}
+}
+
+svn_revision(){
+$shd/../all/svn_revision.sh
+#svn info | awk '/Revision:/ { print $2 }'
+}
+
+svn_commit(){
+#rm $g_dir/Makefile 
+$0 u; svn ci $*
+}
+
+svn_update(){
+
+cd $wg_dir; svn update $* 
+
+}
+
+if [ -z "$*" ]; then 
+  display_help
+  exit 0
+fi
+
+# main part 
+# {{{
+
+script_opts=( $* )
+
+logformat=""
+
+args=( $* ) 
+obj=.
+
+while [ ! -z "$1" ]; do
+  	arg=$1
+  	shift
+  	case "$arg" in
+	  	vm) $v $0 $shd/../all/svn_revision.sh ;;
+		head) logformat="head" ;;
+		ss) $0 s | sed -n '/^[A,M,G,C,U,D]/p' ;;
+		s) svn status $* ;;
+		a) svn add $* ;;
+		v) svn_revision ;; 
+		rm) svn rm --force $* ;;
+		i) svn info $* ;;
+		vlog) $v $svnlog ;;
+		u) svn_update $* ;;
+		c) svn_commit $* ;;
+		-o) obj=$1 ;;
+		# svn log commands: 
+		# 	l	 	(modified svn log )
+		#	ll 		l with less 
+		#	lo		write l to SVNLOG
+	        # {{{
+		lo) shift; $0 l $* > $inc_dir/SVNLOG ;;
+		l) 
+		# {{{
+		dr=$1 ; v1=` $0 v` 
+		if [ ! -z $dr ]; then 
+		  	# {{{
+			v0=$(($v1+$dr))
+			re="\^r"
+			#opts="--with-all-revprops"
+			#opts="--incremental"
+			opts="-v"
+			case "$logformat" in
+			  	"head") $0 $* | awk '/^r/' ;;
+			  	*) svn log $obj -r $v0:$v1 $opts ;;
+			esac
+			# }}}
+		      		else
+				  svn log  $obj $opts 
+		fi
+		;;
+		# }}}
+		ll) $0 l $1 | less ;;
+		# }}}
+	  	*) ;;
+	esac
+done
+
+# }}}
+

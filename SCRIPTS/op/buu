@@ -1,0 +1,109 @@
+#!/bin/bash
+  
+#bu charmm
+
+# functions {{{
+
+eo(){
+
+echo "$this_script>$*" >> $log_file
+
+}
+
+eo_fo(){
+    eo "$* {{{"
+  }
+
+  eo_fc(){
+      eo "$* }}}"
+    }
+
+
+# }}}
+
+# declarations {{{
+
+export shd="`dirname $(readlink -f $0)`"
+export this_script=` basename $0 `
+source $shd/sh_header.sh
+
+vim_opts="-n -p"
+#vim_opts=$vim_opts ' +"set fdm=marker"'
+
+v="vim $vim_opts"
+
+export wg_dir="$shd/../../"
+log_file="$shd/bu.log"
+# }}}
+
+display_help(){
+# {{{
+cat << EOF
+=============================================
+SCRIPT NAME: $this_script 
+PURPOSE: automatic re-compilation of WG software
+USAGE: $this_script [ OPTIONS ] 
+	OPTIONS:
+		vm 	view myself
+		h	display help message
+			execute
+=============================================
+EOF
+# }}}
+}
+
+# main part 
+main(){
+# {{{
+targets=( gmin optim pathsample )
+compilers=( pgi ifort gfortran nag ) 
+
+start_time=` date_in_secs` 
+
+for target in ${targets[@]}
+	do
+	  #eoo "Target: $target;   by: $USER@$HOSTNAME;  date: `date_dm_hm` "
+	  eoo "$target 		$USER@$HOSTNAME 	`date_dm_hm`"
+	  eo_fo
+case "$HOSTNAME" in
+	clust)
+bu -c pgi/64/7.2 $target
+bu -c nag/64/5.1 $target
+bu -c nag/64/5.2 $target
+bu -c ifort/64/11 $target
+;;
+	leonov) 
+bu -c pgi/64/10 $target
+bu -c nag/64/5.1 $target
+bu -c nag/64/5.2 $target
+bu -c ifort/64/11 $target
+bu -c gfortran $target
+;;
+	*) for compiler in ${compilers[@]}; do
+			bu $compiler $target
+		done
+;;
+esac
+done
+
+eo_fc
+end_time=` date_in_secs ` 
+time=` time_dhms $(($end_time-$start_time)) `
+eoo "Time: 	$time"
+# }}}
+}
+
+script_opts=( $* )
+
+[ -z $* ] && main 
+
+while [ ! -z "$1" ]; do
+  	case "$1" in
+	  	vm) $v $0 ;;
+		h) display_help; exit ;;
+		*) main ;;
+	esac
+	shift
+done
+
+

@@ -1,0 +1,1758 @@
+#!/bin/bash
+
+export shd="`dirname $(readlink -f $0)`"
+export this_script=` basename $0 `
+source $shd/sh_header.sh
+
+# declarations 
+# {{{
+
+rm_opts="-rf"
+#vim_opts="-n -p" 
+
+opts_base=( make_base loaded_compiler write_sep_log_file )
+opts_use_base=( mpi amber chi fmkmf makemake )
+
+for opt in ${opts_base[@]};  do
+	  	export $opt=false
+done
+for opt in ${opts_use_base[@]}; do
+	  	export use_$opt=false
+done
+
+v="vim $vim_opts"
+
+export wg_dir="$shd/../../"
+prog="GMIN"
+
+define_dirs(){
+# {{{
+
+PREFIX=$HOME
+INSTALL_DIR=svn
+FULL_INSTALL_DIR=$PREFIX/$INSTALL_DIR/
+
+charmm_dir=$wg_dir/CHARMM31/ 
+builds_dir=$wg_dir/BUILDS/
+inc_dir="$wg_dir/INCLUDE"
+scripts_dir=$wg_dir/SCRIPTS/
+root_build_dir=$builds_dir/$bdir_index/
+prog_source_dir=$wg_dir/$prog/source
+prog_build_dir=$root_build_dir/$prog
+bin_dir=$prog_build_dir/bin/
+source_dir=$prog_build_dir/source
+
+case "$prog" in
+  	GMIN) source_sub_dirs=( ./ AMH CHARMMinterface ) ;;
+  	OPTIM) source_sub_dirs=( ./ AMH Bowman CHARMM CONNECT NEB ) ;;
+	PATHSAMPLE) source_sub_dirs=( ./ ) ;;
+esac
+# }}}
+}
+
+define_dirs
+
+tab="		"
+
+# check for "modules" package existence
+check_modules_exist(){
+# {{{
+/usr/bin/env modulecmd bash help > /dev/null 2>& 1
+exit_code=`echo $?`
+[ $exit_code -eq 0 ] && use_modules=true
+[ ! $exit_code -eq 0 ] && use_modules=false
+# }}}
+}
+
+export log_file="$shd/$this_script.log"
+
+let bdir_index=0
+
+p_arg="gmin"
+prog="GMIN"
+export base_mkf="Makefile.$p_arg"
+
+mpi=false
+make_clean=1
+old_dir=`pwd`
+
+srcf="op226@shell.srcf.ucam.org:~/public_html/"
+venus="0502790@venus.phys.uu.nl"
+web_root="$srcf"
+
+#svn_rev=` svn info | awk '/Revision:/ { print $2 }' `
+svn_rev=` $shd/sv v `
+
+bu_targets=( dx tgz charmm gmin optim pathsample ddps )
+prog_dirs=( GMIN OPTIM PATHSAMPLE DISCONNECT )
+
+make_opts=""
+
+idir="$HOME/bin"
+
+# }}}
+
+do_v(){
+# view things {{{
+case "$1" in
+	log) $v $log_file ; exit ;;
+	m) define_dirs
+	mkf=( $prog_source_dir/Makefile $source_dir/Makefile ) 
+	df="mk.diff"
+	diff ${mkf[0]} ${mkf[1]} | sed 's/^#//g' > $df
+	vfiles=( ${mkf[@]} $df )
+	$v ${vfiles[@]}
+	;;
+esac
+# }}}
+}
+
+do_rm(){
+# {{{
+case "$1" in
+	a) rm_targets=( log b bsx dx  )
+		for rmt in ${rm_targets[@]}; do	
+			$0 rm $rmt 
+		done
+	;;
+	bsx) rmr $shd/iwg ;;
+	dx) rmr $wg_dir/dx ;; 
+	log) rmr  $log_file ;;
+	b | build) rmr $builds_dir ;;
+	bi) rmr $root_build_dir	;;
+esac	
+# }}}
+}
+
+# functions {{{
+# make_* 
+# {{{
+build_bu_target(){
+# {{{
+
+bu_target=$1
+shift
+bu_target_opts=( $* )
+
+if $make_base; then   
+	make_base $bu_target && exit 0
+fi 
+
+eoo "User: $USER@$HOSTNAME Date: `date_dm_hm` Command: $this_script ${bu_opts[@]}"
+eo_fo
+eoo "SVN revision: `$shd/sv v`"
+
+start_time=`date_in_secs` 
+
+base_mkf=Makefile.$1 
+
+compiler_ex=` set_compiler_ex $compiler `
+compiler_name=` get_compiler_short_name $compiler `
+compiler_ex_exists=` exists $compiler_ex `
+
+case "$bu_target" in
+	charmm | gmin | optim | pathsample) 
+		# {{{
+		eoo "Will try to use the compiler provided:"
+		eoo "$tab$compiler"
+		if [ $compiler_ex_exists -ne 0 ]; then
+		  	eoo "Compiler executable "$compiler_ex" not found in PATH..."
+			eoo "Checking whether 'modules' package exists..."
+			check_modules_exist
+			if $use_modules; then 
+			  	eoo "Modules package found."
+			  	eoo "Using modules package..."
+				load_compiler $compiler
+			else
+			  	eooe "No modules package & no compiler in PATH - aborting..."
+				status="Failure to use modules + no compiler in PATH"
+			fi
+		else
+			eoo "Compiler executable $compiler_ex found."
+			loaded_compiler=true 
+	        fi
+
+		if $loaded_compiler; then  
+			  	make_prog $bu_target 
+			else
+		 	 	eooe "Failed to load compiler, aborting..."
+			 	status="Failure to load compiler: $compiler" 
+		fi
+	;;
+	# }}}
+	dx | bsx | tgz) make_$bu_target ${bu_target_opts[@]} ;;
+	*) 
+		$use_modules && load_compiler
+		make_$bu_target
+	       	;;
+esac
+
+end_time=`date_in_secs`
+compile_time=` time_dhms $(($end_time-$start_time)) `	
+#eoo "Status: $status; time: `time_dhms $compile_time` "
+eo_fc
+eoo "Time: $compile_time		$status"
+
+# }}}
+}
+
+select_debug_level(){
+#{{{
+
+for other_opt in ${other_opts[@]};  do
+for debug_opt in ${debug_opts[@]};  do
+case "$1" in
+  	nag) #{{{
+		case "$debug_opt" in
+		  	opt | noopt)  FFLAGS="$FFLAGS -O$opt_level" ;;
+				# this is for thorough but slow debugging
+		  	debugslow) FFLAGS="$FFLAGS -C=all -mtrace=all -gline" ;;
+				# this is for garden variety debugging
+		  	debug) FFLAGS="$FFLAGS -C -g" ;;
+			mismatch) FFLAGS="$FFLAGS -mismatch_all" ;;
+		esac
+	;;
+#}}}
+	pgi) # {{{
+		case "$debug_opt" in
+		  	debug) FFLAGS="$FFLAGS -C -g -gopt -Mbounds -Mchkfpstk -Mchkptr -Mchkstk -Mcoff -Mdwarf1 -Mdwarf2 -Mdwarf3 -Melf -Mnodwarf -Mpgicoff -traceback"
+				;;
+			#mismatch) FFLAGS="$FFLAGS -mismatch_all" ;;
+		esac
+	;;
+	# }}}
+	pathscale)
+	;;
+	ifort) # {{{ 
+		case $debug_opt in
+		  	debug) FFLAGS="$FFLAGS -C -g -traceback -debug full" ;;
+			opt) FFLAGS="$FFLAGS -O4" ;;
+		esac
+		;;
+##### ifort debugging flags 
+#FFLAGS= -132 -O0 -g -traceback -fpe:0 -check all
+#FFLAGS= -132 -g -debug all -check all -implicitnone -warn unused -fp-stack-check -heap-arrays -ftrapuv -check pointers -check bounds
+##### ifort optimization flags 
+#FFLAGS= -132 -Vaxlib -O3 # for ifc
+#FFLAGS= -132 -O3 -ip -static # -ipo or -fast doesnt work 
+		#}}}
+	gfortran) # {{{
+		case $debug_opt in
+		  	debug) FFLAGS="$FFLAGS -g -fbounds-check-Wuninitialized -O -ftrapv -fimplicit-none -fno-automatic" ;;
+#  FFLAGS= -ffixed-line-length-132 -g -fbounds-check -Wuninitialized -O -ftrapv 
+#  FFLAGS= -ffixed-line-length-132 -g -fbounds-check -Wuninitialized -O -ftrapv -fimplicit-none -fno-automatic
+			opt) FFLAGS="$FFLAGS -O3 -ftree-vectorize" ;;
+  			noopt) FFLAGS="$FFLAGS -ffixed-line-length-265 -O0" ;;
+		esac
+       	;;
+	# }}}
+esac
+
+done
+done 
+#}}}
+}
+
+get_compiler(){
+# {{{
+#
+# -c pgi/64/7.2/5
+# 	OR:
+# -c pgi 4
+#	where 4 is the number of compiler
+#	as given by command  bu av pgi
+#
+case "$2" in
+ 	[0-9]+)  num="$2" 
+		 compiler=` $0 av "$1" | awk "NR==$num" | awk '{ print $2 }' ` ;;
+	*) compiler=$1 ;;
+esac
+compiler_m=` echo "$compiler" | sed 's/\//-/g' ` 
+# }}}
+}
+
+make_tags(){
+# run exuberant ctags on source code {{{
+for prog_dir in ${prog_dirs[@]};  do
+	cd $wg_dir/$prog_dir/source
+	ctags -R *
+done
+cd $wg_dir/SCRIPTS/op/; ctags -R *
+
+# }}}
+}
+
+make_base(){
+# {{{
+
+$use_modules && load_compiler
+
+$use_chi && target=ch$bu_target
+$use_amber && target=amb$bu_target
+
+cd $wg_dir/GMIN/source; 
+
+s1="CPFLAGS ="
+cat Makefile | awk "NR==1,/$s1/" 	 > mk
+
+if $use_amber; then
+# AMBER block {{{
+cat >> mk << EOF
+AMB9SRC = ../../AMBER
+SANDERSRC = ../../AMBER/src/sander
+EOF
+# }}}
+fi
+
+if $use_chi; then
+# CHARMM block {{{
+
+ch0="CHARMM 31"
+ch1="CHARMM 31 block end"
+tmp=`mktemp`
+cat Makefile | awk "/$ch0/,/$ch1/" | sed '/^#/d'  > $tmp
+
+# remove commented lines where necessary
+cat $tmp | sed '/charmm31.mpi/d; /\/tool\/preflx/d' > $tmp.1; mv $tmp.1 $tmp 
+
+if [ ! "$target"=="chgmin" ]; then
+ 	 	cat $tmp | sed '/BLAS_EXCLUDE_LIST/d' > $tmp.1; mv $tmp.1 mk.charmm
+      else
+		cat $tmp > mk.charmm
+fi
+#}}}
+	cat mk.charmm >> mk
+fi 
+
+cat Makefile | awk "/$s2/,0"   >> m2
+
+s1="COMPILERS AND COMPILER FLAGS"  
+s2="RULES AND TARGETS"  
+
+cat Makefile | awk "NR==1,/$s1/" 	 > mk
+cat Makefile | awk "/$s2/,0"   >> m2
+
+# compiler {{{
+cat >> mk << EOF
+FC = pgf90
+FFLAGS= -Mextend -O3 -Munroll -Mnoframe 
+NOOPT = -O0  -Mextend 
+SEARCH_PATH =  -I..
+LIBS = libmyblas.a libmylapack.a libmyblas.a
+LDFLAGS= -L.
+SWITCH=pgi
+# commented {{{
+# FC = mpif77  # for lam - don't forget to uncomment MPI!
+# FC = mpif90  # for mpich and openmpi - don't forget to uncomment MPI!
+# DEFS = -DMPI
+# The usual flags for AMBGMIN:
+# FFLAGS= -Mextend -O3 -Mvect=assoc,cachesize:1024000,recog,transform
+# These are the CHARMM31 flags for mpif90 64 bit library.
+# It is ESSENTIAL to use the same flags as for the CHARMM build!!!!
+#
+# FFLAGS= -Mextend -O3 -Munroll -Mnoframe 
+#  FFLAGS= -Mextend -O0 -Mnoframe
+#  FFLAGS= -Mextend -C -g -traceback
+# Debugging flags
+#  FFLAGS= -Mextend -C -g -gopt -Mbounds -Mchkfpstk -Mchkptr -Mchkstk -Mcoff -Mdwarf1 -Mdwarf2 -Mdwarf3 -Melf -Mnodwarf -Mpgicoff -traceback
+
+# flags for AMBER9
+#
+# FREEFORMAT_FLAG= -Mfree
+# EXTRA_FLAGS=-module
+#
+# }}}
+EOF
+# }}}
+
+cat m2 >> mk
+
+make clean;
+make $target
+
+# }}}
+}
+# }}}
+
+# {{{  
+
+make_tgz(){
+
+eoo "Archiving on `date_dm_hm` by $USER@$HOSTNAME" 
+eo_fo
+eos
+# {{{
+svn_rev=` $shd/sv v `
+ar="wg.$svn_rev.tar.gz"
+rm -rf $wg_dir/$ar
+
+tar_dir=$wg_dir/tar
+mkdir -p $tar_dir
+
+fs=( BLAS LAPACK DOC GMIN OPTIM PATHSAMPLE DISCONNECT SCRIPTS INCLUDE )
+
+# clean things 
+# {{{
+for d in ${fs[@]}
+	do
+	  	eoo "SVN exporting: "
+		eoo "		$d to $tar_dir/$d"
+		svn export --force $wg_dir/$d $tar_dir/$d
+	  	cd $tar_dir/$d
+	  	case $d in 
+		  	BLAS | LAPACK | DOC) mymake clean ;;
+			GMIN | OPTIM | PATHSAMPLE) 
+				cd source; 
+				mymake clean; 
+				case $d in
+				  	GMIN)
+						#eoo "Removing CHARMMinterface..."
+						#rm -rf CHARMMinterface 
+					;;
+					OPTIM)
+					;;
+					PATHSAMPLE)
+					;;
+				esac
+			;;
+		esac
+done
+# }}}
+
+cd $tar_dir
+tar czf $ar ${fs[@]}
+mv $ar $wg_dir
+
+rm -rf $tar_dir 
+
+# }}}
+eos
+eo_fc 
+
+if [ -f $wg_dir/$ar ]; then 
+	eoo "Created:" 
+	eoo "	$ar"
+	eoo "Included:"
+	eoo "		${fs[@]}" 
+	eoo "Size:"
+	eoo "	` ls -lh $wg_dir/$ar | awk '{ print $5 }' ` " 
+else
+	eoo "Failed to create archive"
+fi
+
+}
+
+make_prog(){
+#{{{
+
+base_mkf=Makefile.$1 
+
+case $1 in
+  	charmm) make_charmm ;;
+  	gmin | pathsample | optim)
+
+prog=` echo "$1" | awk '{ print toupper($0) } ' `
+make_targets=( $prog )
+
+eo_fo "$prog compilation on `date_dm_hm` by $USER@$HOSTNAME" 
+eos
+
+define_dirs
+
+case $1 in
+  	optim) 
+	#{{{	
+		cd $prog_source_dir
+		#echo $compiler_name 
+		#eo_fc 
+
+		eoo "make clean: cleaning files..."
+		eo_fo "make clean output:" 
+		eos
+		#mymake clean 
+		make clean >> $log_file 2>> $log_file 
+		eos
+		eo_fc
+		
+		eoo "build.csh: compiling OPTIM..."
+		eo_fo "build.csh output" 
+		eos
+		build.csh $compiler_name >> $log_file 2>> $log_file 
+		exit_code=` echo $? ` 
+		eos 
+		eo_fc 
+
+		case $exit_code in
+		  	0) status="Success" ;;
+			*) status="Failure" ;;
+		esac
+
+	 	cat make.out >> $log_file 
+
+		exec="../bin/$compiler_name/$prog"
+
+		if [ -f $exec -a $exit_code -eq 0 ]; then 
+		  	eoo "Copying $prog to: "
+			eoo "		$idir"
+			cp $exec $idir
+		fi
+
+		eo_fc "OPTIM compilation finished."
+
+		;;
+	      #}}}
+	gmin | pathsample)
+# gmin pathsample {{{
+source_patterns="*.f *.sh *.f90 *.F *.h *.src *.csh *.sh"
+
+mkdir -p $root_build_dir; 
+cd $root_build_dir; mkdir -p LAPACK BLAS; 
+mkdir -p $source_dir $bin_dir
+
+cd $wg_dir/LAPACK; cpr *.f Makefile make.inc $root_build_dir/LAPACK
+cd $wg_dir/BLAS; cpr *.f Makefile make.inc $root_build_dir/BLAS
+
+for sub_dir in ${source_sub_dirs[@]}; do
+	  # {{{
+	   cd $prog_source_dir/$sub_dir 
+	   dest=$source_dir/$sub_dir/; mkdir -p $dest
+	   
+	   if [ $sub_dir=="./" ]; then
+		#don't copy the original Makefile!
+	        cp $scripts_dir/all/svn_revision.sh $dest
+	        cp $scripts_dir/all/display_version.sh $dest
+
+	     	$dest/svn_revision.sh >& $dest/SVNREV
+		cp $dest/SVNREV ./
+	   else
+	       	cp Makefile $dest
+	   fi
+	   cpr ${source_patterns[@]} $dest
+	   # }}}
+done
+
+cd $source_dir
+
+eo_fo "Intro" 
+eoo "Makefile target(s):"
+eoo "		${make_targets[@]}"
+
+
+eoo "Current build index is $bdir_index"
+eoo "Current source directory is"
+eoo "		$PWD"
+
+for make_target in ${make_targets[@]}
+	do
+	 # {{{ 
+eoo "Current makefile target:"
+eoo "		$make_target"
+exec=$make_target
+
+eoo_opts 
+
+the_makefile="Makefile"
+
+eoo "We will create a new makefile named: "
+eoo "		the_makefile=$the_makefile"
+eoo "To do this, we will use the 'base' makefile called: "
+eoo "		base_mkf=$base_mkf "
+
+eoo "Debugging/optimization options, as passed to $this_script:"
+eoo "		${debug_opts[@]}"
+
+compose_makefile $base_mkf $the_makefile	
+
+[ -f $the_makefile ] && ( eoo "Created:" ; eoo "$tab$PWD/$the_makefile" )
+[ ! -f $the_makefile ] && eoo "Error: no $the_makefile created." 
+
+eoo "Makefile command-line options are:"
+eoo "		${make_opts[@]}"
+eoo "Compiler flags: "
+eoo "		FFLAGS=$FFLAGS"
+eoo "Compiler executable:" 
+eoo "		FC=$FC"
+
+if [ $make_clean -eq 1 ]; then 
+	eo_fc
+	eoo "make clean: cleaning files..."
+	eo_fo "make clean output:" #{{{
+	eos
+	mymake clean 
+	eos
+	eo_fc
+fi
+# }}}
+
+eoo "make: compiling $make_target..."
+eo_fo "$prog make output:" # {{{
+eos
+mymake $make_target ${make_opts[@]}
+case "$?" in
+  	0) status="Success";;
+	*) status="Failure";;
+esac
+#2>> $log_file 
+#mymake ${make_opts[@]} 2>> $log_file 
+eos
+eo_fc "make finished" 
+eos
+# }}}
+
+if [ -f $bin_dir/$exec ]; then
+	 	 eoo "$status: Executable $exec produced."
+		 exits="s"
+		 eoo "Copying $exec to: $idir"
+		 mkdir -p $idir
+	 	 [ -d $idir ] && cp $bin_dir/$exec $idir
+		 eoo "$exec -v: displaying version info..."
+		 eo_fo ""
+		 $exec -v 2>> $log_file  
+		 $exec -v 
+		 eo_fc
+       else
+	 	 eoo "$status: No executable(s) produced."
+		 exits="e"
+fi
+# write closing statement to bu.log (with closing fold marker)
+eo_fc "$exec compilation finished." 
+#}}}
+done
+#;;
+# }}}
+cd $shd 
+	;;
+esac
+
+;;
+esac
+#eoo "Removing build directory..."
+#$0 rm bi $bdir_index 
+}
+
+make_pathsample(){
+#{{{
+exec=PATHSAMPLE
+prog="PATHSAMPLE"
+eo_fo "$prog compilation on `date_dm_hm` by $USER@$HOSTNAME" 
+eos
+cd $wg_dir/$exec/source
+mymake clean
+mymake
+cp ../bin/$exec $idir
+cd - 
+eo_fc
+# }}}
+}
+
+make_optim(){
+# {{{
+exec=OPTIM
+cd $wg_dir/$exec/source
+make clean 
+eos
+eo "$1> OPTIM make output:"
+make optim >> $log_file 
+eos
+cp ../bin/$cname/$exec $idir
+cd - 
+# }}}
+}
+
+run_doxygen(){
+#{{{
+
+desc=( "GMIN - A Program for Finding Global Minima by Basin-Hopping" \
+	"OPTIM" "PATHSAMPLE" "DISCONNECT" )
+
+case "$1" in # choose which programs to document ? {{{
+  	"" | "all") 
+		progs=( "GMIN" "OPTIM" "PATHSAMPLE" "DISCONNECT" ) 
+		ip_start=-1
+		;;
+	g | gmin | o | optim | ps | pathsample | ds)
+ 	case "$1" in
+    		g | gmin) progs=( GMIN )  ; ip_start=-1 ;;
+    		o | optim) progs=( OPTIM ) ; ip_start=0  ;;
+    		ps | pathsample) progs=( PATHSAMPLE ) ; ip_start=1 ;;
+    		ds) progs=( DISCONNECT ) ; ip_start=2 ;;
+	esac
+	;;
+esac # }}}
+
+svn_rev=`$shd/sv v` 
+
+echo "Starting making HTML Doxygen documentation for:"
+echo "${progs[@]}"
+echo "" >& $shd/dx.log
+
+let ip=$ip_start
+
+for p in "${progs[@]}" 
+  	# loop over programs {{{
+	do
+	  ip=$(($ip+1))
+	  #project_name=${desc[$ip]}
+	  project_name="$p"
+	  dx_dir="$wg_dir/dx/$p"
+	  mkdir -p $dx_dir
+	  echo "Making Doxygen documentation for: $p..."
+	  echo "Output directory: $dx_dir"
+	  source_dir="$wg_dir/$p/source"
+	  cd $source_dir
+
+cat >& $source_dir/Doxyfile << EOF
+# Doxyfile template {{{
+# A-E{{{
+ABBREVIATE_BRIEF       =
+ALIASES                = "input=\par Input parameters:\n" 
+ALLEXTERNALS           = NO
+ALPHABETICAL_INDEX     = YES
+ALWAYS_DETAILED_SEC    = NO
+BINARY_TOC             = NO
+BRIEF_MEMBER_DESC      = YES
+BUILTIN_STL_SUPPORT    = NO
+CALLER_GRAPH           = YES
+CALL_GRAPH             = YES
+CASE_SENSE_NAMES       = YES
+CHM_FILE               =
+CHM_INDEX_ENCODING     =
+CLASS_DIAGRAMS         = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+COLS_IN_ALPHA_INDEX    = 5
+COMPACT_LATEX          = NO
+COMPACT_RTF            = NO
+CPP_CLI_SUPPORT        = NO
+CREATE_SUBDIRS         = YES
+DIRECTORY_GRAPH        = YES
+DISABLE_INDEX          = NO
+DISTRIBUTE_GROUP_DOC   = NO
+DOCSET_BUNDLE_ID       = org.doxygen.Project
+DOCSET_FEEDNAME        = "Doxygen generated docs"
+DOCSET_PUBLISHER_ID    = org.doxygen.Publisher
+DOCSET_PUBLISHER_NAME  = Publisher
+DOTFILE_DIRS           =
+DOT_CLEANUP            = YES
+DOT_FONTNAME           = FreeSans.ttf
+DOT_FONTPATH           =
+DOT_FONTSIZE           = 10
+DOT_GRAPH_MAX_NODES    = 50
+DOT_IMAGE_FORMAT       = png
+DOT_MULTI_TARGETS      = NO
+DOT_NUM_THREADS        = 0
+DOT_PATH               =
+DOT_TRANSPARENT        = NO
+DOXYFILE_ENCODING      = UTF-8
+ECLIPSE_DOC_ID         = org.doxygen.Project
+# }}}
+ENABLED_SECTIONS       = YES
+ENABLE_PREPROCESSING   = YES
+ENUM_VALUES_PER_LINE   = 4
+EXAMPLE_PATH           =
+EXAMPLE_PATTERNS       =
+EXAMPLE_RECURSIVE      = NO
+EXCLUDE                = 
+EXCLUDE_PATTERNS       = main.f mc.f 
+EXCLUDE_SYMBOLS        =
+EXCLUDE_SYMLINKS       = NO
+EXPAND_AS_DEFINED      =
+EXPAND_ONLY_PREDEF     = NO
+EXTENSION_MAPPING      =
+EXTERNAL_GROUPS        = YES
+EXTRACT_ALL            = YES
+EXTRACT_ANON_NSPACES   = NO
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_LOCAL_METHODS  = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+EXTRA_PACKAGES         =
+EXT_LINKS_IN_WINDOW    = NO
+FILE_PATTERNS          = *.f *.f90 *.F
+FILE_VERSION_FILTER    =
+FILTER_PATTERNS        =
+FILTER_SOURCE_FILES    = NO
+FORCE_LOCAL_INCLUDES   = NO
+FORMULA_FONTSIZE       = 10
+FORMULA_TRANSPARENT    = YES
+FULL_PATH_NAMES        = YES
+GENERATE_AUTOGEN_DEF   = NO
+GENERATE_BUGLIST       = YES
+GENERATE_CHI           = NO
+GENERATE_DEPRECATEDLIST= YES
+GENERATE_DOCSET        = NO
+GENERATE_ECLIPSEHELP   = NO
+GENERATE_HTML          = YES
+GENERATE_HTMLHELP      = NO
+GENERATE_LATEX         = YES
+GENERATE_LEGEND        = YES
+GENERATE_MAN           = YES
+GENERATE_PERLMOD       = NO
+GENERATE_QHP           = NO
+GENERATE_RTF           = NO
+GENERATE_TAGFILE       =
+GENERATE_TESTLIST      = YES
+GENERATE_TODOLIST      = YES
+GENERATE_TREEVIEW      = YES
+GENERATE_XML           = NO
+GRAPHICAL_HIERARCHY    = YES
+GROUP_GRAPHS           = YES
+HAVE_DOT               = NO
+HHC_LOCATION           =
+HIDE_FRIEND_COMPOUNDS  = NO
+HIDE_IN_BODY_DOCS      = NO
+HIDE_SCOPE_NAMES       = NO
+HIDE_UNDOC_CLASSES     = NO
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_RELATIONS   = YES
+HTML_ALIGN_MEMBERS     = YES
+HTML_COLORSTYLE_GAMMA  = 80
+HTML_COLORSTYLE_HUE    = 220
+HTML_COLORSTYLE_SAT    = 100
+HTML_DYNAMIC_SECTIONS  = NO
+HTML_FILE_EXTENSION    = .html
+HTML_FOOTER            =
+HTML_HEADER            =
+HTML_OUTPUT            = html
+HTML_STYLESHEET        =
+HTML_TIMESTAMP         = YES
+IDL_PROPERTY_SUPPORT   = YES
+IGNORE_PREFIX          =
+IMAGE_PATH             =
+INCLUDED_BY_GRAPH      = YES
+INCLUDE_FILE_PATTERNS  =
+INCLUDE_GRAPH          = YES
+INCLUDE_PATH           =
+INHERIT_DOCS           = YES
+INLINE_INFO            = YES
+INLINE_INHERITED_MEMB  = NO
+INLINE_SOURCES         = YES
+INPUT                  =
+INPUT_ENCODING         = UTF-8
+INPUT_FILTER           =
+INTERNAL_DOCS          = NO
+JAVADOC_AUTOBRIEF      = NO
+LATEX_BATCHMODE        = NO
+LATEX_CMD_NAME         = latex
+LATEX_HEADER           =
+LATEX_HIDE_INDICES     = NO
+LATEX_OUTPUT           = latex
+LATEX_SOURCE_CODE      = NO
+LAYOUT_FILE            =
+MACRO_EXPANSION        = NO
+MAKEINDEX_CMD_NAME     = makeindex
+MAN_EXTENSION          = .3
+MAN_LINKS              = YES
+MAN_OUTPUT             = man
+MAX_DOT_GRAPH_DEPTH    = 0
+MAX_INITIALIZER_LINES  = 30
+MSCFILE_DIRS           =
+MSCGEN_PATH            =
+MULTILINE_CPP_IS_BRIEF = NO
+OPTIMIZE_FOR_FORTRAN   = YES
+OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_JAVA   = NO
+OPTIMIZE_OUTPUT_VHDL   = NO
+OUTPUT_DIRECTORY       = $dx_dir
+OUTPUT_LANGUAGE        = English
+PAPER_TYPE             = a4
+PDF_HYPERLINKS         = YES
+PERLMOD_LATEX          = NO
+PERLMOD_MAKEVAR_PREFIX =
+PERLMOD_PRETTY         = YES
+PERL_PATH              = /usr/bin/perl
+PREDEFINED             =
+PROJECT_NAME           = "$project_name"
+PROJECT_NUMBER         = "SVN revision $svn_rev"
+QCH_FILE               =
+QHG_LOCATION           =
+QHP_CUST_FILTER_ATTRS  =
+QHP_CUST_FILTER_NAME   =
+QHP_NAMESPACE          = org.doxygen.Project
+QHP_SECT_FILTER_ATTRS  =
+QHP_VIRTUAL_FOLDER     = doc
+QT_AUTOBRIEF           = NO
+QUIET                  = NO
+RECURSIVE              = YES
+REFERENCED_BY_RELATION = NO
+REFERENCES_LINK_SOURCE = YES
+REFERENCES_RELATION    = NO
+REPEAT_BRIEF           = YES
+RTF_EXTENSIONS_FILE    =
+RTF_HYPERLINKS         = NO
+RTF_OUTPUT             = rtf
+RTF_STYLESHEET_FILE    =
+SEARCHENGINE           = YES
+SEARCH_INCLUDES        = YES
+SEPARATE_MEMBER_PAGES  = NO
+SERVER_BASED_SEARCH    = NO
+SHORT_NAMES            = NO
+SHOW_DIRECTORIES       = NO
+SHOW_FILES             = YES
+SHOW_INCLUDE_FILES     = YES
+SHOW_NAMESPACES        = YES
+SHOW_USED_FILES        = YES
+SIP_SUPPORT            = NO
+SKIP_FUNCTION_MACROS   = YES
+SORT_BRIEF_DOCS        = NO
+SORT_BY_SCOPE_NAME     = NO
+SORT_GROUP_NAMES       = NO
+SORT_MEMBERS_CTORS_1ST = NO
+SORT_MEMBER_DOCS       = YES
+SOURCE_BROWSER         = YES
+STRIP_CODE_COMMENTS    = NO
+STRIP_FROM_INC_PATH    =
+STRIP_FROM_PATH        =
+SUBGROUPING            = YES
+SYMBOL_CACHE_SIZE      = 0
+TAB_SIZE               = 8
+TAGFILES               =
+TEMPLATE_RELATIONS     = NO
+TOC_EXPAND             = NO
+TREEVIEW_WIDTH         = 250
+TYPEDEF_HIDES_STRUCT   = NO
+UML_LOOK               = NO
+USE_HTAGS              = NO
+USE_INLINE_TREES       = NO
+USE_PDFLATEX           = YES
+VERBATIM_HEADERS       = YES
+WARNINGS               = YES
+WARN_FORMAT            = "\$file:\$line: \$text"
+WARN_IF_DOC_ERROR      = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_LOGFILE           =
+WARN_NO_PARAMDOC       = NO
+XML_DTD                =
+XML_OUTPUT             = xml
+XML_PROGRAMLISTING     = YES
+XML_SCHEMA             =
+# }}}
+EOF
+
+doxygen 2>> $shd/dx.log
+# }}}
+done
+echo "Finished. Doxygen output is written to dx.log"
+cd $shd
+
+#}}}
+}
+
+make_dx(){
+# Doxygen compilation {{{
+eoo "Doxygen compilation on `date_dm_hm` by $USER@$HOSTNAME" 
+eo_fo
+eos
+
+run_doxygen $* >> $log_file 
+eos
+eo_fc
+# now, synchronize doxygen docs with 
+# remote web-server specified by web_root
+# echo "Synchronizing with $web_root..."	
+# rsync -avz --delete --size-only  $wg_dir/dx/* $web_root/dx/
+#}}}
+}
+
+make_charmm(){
+# {{{
+prog="CHARMM"
+eo_fo "$prog compilation on `date_dm_hm` by $USER@$HOSTNAME" 
+eos
+eoo "Preparing to compile CHARMM..."
+cd $charmm_dir; 
+eoo "CHARMM source directory is located at:"
+eoo "		$charmm_dir"
+eoo "./clean.csh: cleaning files for CHARMM..."
+./clean.csh ; 
+eoo "./compile.csh: compiling CHARMM..."
+./compile.csh ; 
+eoo "CHARMM compilation process finished. "
+eoo "		Now, let's look at tail build.log:"
+
+tail build.log >> $log_file 
+tail build.log
+
+s0=` tail build.log | awk 'BEGIN{i=0}/install.com> Phase 3 completed/ { i+=1;print i }' `
+
+case "$s0" in
+  	1) status="Success" ;;
+	0) status="Failure" ;;
+esac
+
+eos
+eo_fc 
+
+cd - 
+# }}}
+}
+
+# }}}
+
+# functions 
+# {{{
+
+#other {{{
+
+set_default_compiler(){
+#{{{
+default_compiler="pgi/64/10.9"
+
+case "$HOSTNAME" in
+  	"clust") default_compiler="pgi/64/7.2/5" ;;
+  	"leonov") default_compiler="pgi/64/8.0/5" ;;
+esac
+
+compiler=$default_compiler
+#}}}
+}
+
+cpr(){
+
+#cp -r $*  2>& /dev/null
+cp -r $* > /dev/null 2>&1
+
+}
+#}}}
+
+cat_makefile_parts(){
+#{{{
+
+# script info 
+#{{{
+# syntax: cat_makefile_parts Makefile_name bu_opts
+
+# Command-line arguments to this function:
+# 	first argument - the name for the Makefile
+# 	other arguments => bu_opts , ie,  bu script options
+# 		(don't mix up with the original Makefile options! )
+#}}}
+
+m=$inc_dir/$1
+shift
+
+# intro message; then definitions, objects, CHARMM and AMBER sections {{{
+cat << EOF
+# Introductory message {{{
+# A Makefile for $prog
+# Created: `date` by $USER@$HOSTNAME
+# bu options: ${bu_opts[@]}
+# 
+# Other options:
+#
+# Compiler (name): $compiler_name
+# Compiler (full name): $compiler
+# Compiler executable: $compiler_ex
+#
+# }}}
+EOF
+
+cat << EOF
+ROOT_PATH=$wg_dir
+ROOT_BUILD_PATH=$root_build_dir
+EOF
+cat $m.def
+cat $m.obj
+
+case "$make_target" in 
+  	CHGMIN) cat $m.charmm ;;
+	AMBGMIN) car $m.amber9 ;;
+esac
+# }}}
+
+FC=`set_compiler_ex $compiler`
+
+# compiler-specific section
+# {{{
+
+case "$compiler_name" in
+  	pgi) #{{{
+		base_opt="-Mextend"
+		NOOPT="$base_opt -O0"
+		FFLAGS="$base_opt"
+		case "$make_target" in
+			  GMIN | PATHSAMPLE) FFLAGS="$FFLAGS -O$opt_level -Munroll -Mnoframe" ;;
+			  AMBGMIN) FFLAGS="$FFLAGS -O$opt_level -Mvect=assoc,cachesize:1024000,recog,transform" ;;
+		esac
+	;;
+      #}}}
+	nag) #{{{
+		base_opt="-132 -kind=byte"
+		FFLAGS="$base_opt -maxcontin=3000"
+		FFLAGS="$base_opt -maxcontin=3000 -C -g -mismatch_all -ieee=full"
+		NOOPT="-O0 $base_opt"
+	;;
+      #}}}
+	ifort) 
+		NOOPT="-O0"
+		FFLAGS="-132 -C -g -traceback -debug full"
+		$use_mpi && echo "DEFS+=-DMPI"
+cat << EOF
+FREEFORMAT_FLAG= -free
+EOF
+	;;
+	gfortran) # {{{ 
+		base_opt="-ffixed-line-length-132"
+		base_opt="-ffixed-line-length-265 -ffree-form -fbounds-check" 
+		base_opt="-ffixed-line-length-265 -fbounds-check" 
+		# FFLAGS= -ffixed-line-length-132 -g -fbounds-check -Wuninitialized -O -ftrapv
+		NOOPT="$base_opt -O0"
+		FFLAGS="$base_opt "
+cat << EOF
+
+FREEFORMAT_FLAG= -ffree-form
+LDFLAGS = -LBLAS -LLAPACK
+EXTRA_FLAGS=-I
+
+EOF
+       	;;
+	# }}}
+esac
+
+select_debug_level "$compiler_name"
+# }}}
+
+# }}}
+
+cat << EOF
+
+LIBS = libmyblas.a libmylapack.a libmyblas.a
+LDFLAGS= -L.
+NOOPT=$NOOPT
+SEARCH_PATH=-I..
+FC=$FC
+FFLAGS=$FFLAGS
+EXTRA_FLAGS=-I
+SWITCH=$compiler_name
+
+EOF
+
+cat $m.rules
+#cat $m.display_version
+cat << EOF
+include \$(INC_PATH)/mkf
+EOF
+cat $m.dep
+
+#}}}
+}
+
+# other {{{
+# output {{{
+eos(){
+
+eo "======================================"
+
+}
+
+eo(){
+
+echo "$this_script>$*" >> $log_file
+
+}
+
+eo_fo(){ 
+  eo "$* {{{" 
+}
+
+eo_fc(){ 
+  eo "$* }}}" 
+}
+# }}}
+# modules {{{
+
+get_mav(){
+# {{{
+set_mod_home
+
+source $mod_home/init/bash
+module av >& mav
+cat mav | sed '/^$/d' | sed '/^---/d' | sed '/^_M/d' >& mav.n; mv mav.n mav
+modules=( ` cat mav ` )
+echo "" >& mav.n
+for m in ${modules[@]}; do
+		echo "$m" >> mav.n 
+done
+mv mav.n mav
+# }}}
+}
+
+module(){ 
+/usr/bin/env modulecmd bash $* 
+}
+
+munload(){
+module unload $*
+}
+
+mload_prelim(){
+
+case "$HOSTNAME" in
+ 	clust)
+	       	case $compiler in
+  			"nag/64/5.2") mload "gfortran/4.2.0" ;;
+     		esac		
+		;;
+       *) ;;
+esac       
+
+}
+
+mload(){
+# {{{
+
+mod_output=`mktemp`
+module load $* >& $mod_output
+num_err=` cat $mod_output | awk '/ERROR/ { print NR } ' `
+
+if [ -z "$num_err" ]; then 
+
+ 		 eoo "Module(s) loaded:"
+
+		 # try to find a full name for the loaded module ...
+
+		 mm=`echo $1 | sed 's/\//-/g'`
+		 fmn=` module list >& t; cat t | sed 's/\//-/g' | awk "/$mm/" | awk '{ print $2 }' `
+		 fmn=`echo $fmn | sed 's/-/\//g'`
+
+		 #eoo "$tab$fmn" 
+	 	 eoo "$tab$1" 
+		 mload_exit_code=0
+       else
+	         eooe "Error: Failed to load module(s): $*"
+		 eooe "Modules error output:"
+		 cat $mod_output >> $log_file   
+		 cat $mod_output
+		 #eooe "Aborting..."
+		 mload_exit_code=1
+fi
+#exit $exit_code
+#}}}
+}
+
+mlist(){
+tmp=`mktemp`
+module list $* >& $tmp
+cat $tmp 
+}
+
+mhelp(){
+tmp=`mktemp`
+module help $* >& $tmp
+endstring="Module Specific Help"
+cat $tmp | awk "NR==1,/$endstring/" | sed "/$endstring/d"
+}
+
+# explicitly define a home directory for the 'modules' package
+# strangely, on clust with bash, echo $MODULESHOME gives a different location,
+# than in csh (which is the true one). So, that's why there is this additional
+# function
+
+set_mod_home(){
+# set the correct value for MODULESHOME 
+# {{{
+case "$HOSTNAME" in
+  clust) mod_home=/usr/share/modules ;;
+  *) mod_home=$MODULESHOME ;;
+esac
+
+export mod_home
+# }}}
+}
+
+# }}}
+# compilers {{{
+
+get_compiler_version(){
+echo $1 | awk -F "/" '{ print $3 } '
+}
+
+get_compiler_short_name(){
+# short compiler name
+echo $1 | awk -F "/" '{ print $1 } ' 
+}
+
+split_compiler_name(){
+
+export compiler_bits=` echo $1 | awk -F "/" '{ print $2 } ' ` 
+export compiler_version=` get_compiler_version $1  ` 
+export compiler_name=`get_compiler_short_name $1 `
+#
+
+}
+
+set_mpi_ex(){
+
+for other_opt in ${other_opts[@]}
+  	do
+		case "$other_opt" in
+			lam) f="mpif77"  ;;
+			mpich | openmpi) f="mpif90" ;;
+		esac
+done
+
+}
+
+eoo_opts(){
+$use_mpi && eoo "Using MPI"
+$use_chi && eoo "Using CHARMM Interface"
+$use_amber && eoo "Using AMBER Interface"
+}
+
+set_compiler_ex(){
+#{{{
+case $1 in 
+ 	pgi*) f="pgf90" ; $use_mpi && f=` set_mpi_ex ` ;;
+        ifort*) f="ifort" ; $use_mpi && f=` set_mpi_ex ` ;;
+	nagfor | f95) f="$1" ;;
+	nag*) f="nagfor" 
+		compiler_version=`get_compiler_version $compiler `	
+		case "$compiler_version" in
+		  	"5.1") f="f95" ;;
+		  	"5.2") f="nagfor" ;;
+		esac
+		;;
+	gfortran*) f="gfortran" ;;
+	pathscale*) f="pathf95" ;;
+esac
+echo $f
+# }}}
+}
+
+load_compiler(){
+# {{{
+eoos "start: load_compiler()"
+set_mod_home
+source $mod_home/init/bash
+
+# try to set a full name of the compiler
+compiler_new=` $0 av $compiler | awk 'NR==1 { print $2 }' | awk "/$compiler/" | sed 's/(default)$//g' `
+echo "compiler_new=$compiler_new"
+
+[ -z $compiler_new ] && eooe "Failed to check compiler's full name through module avail command."
+[ ! -z "$compiler_new" ] && compiler="$compiler_new" 
+eoo "Try to load the selected compiler by invoking 'module load' command: "
+eoo "		$compiler"
+mload $compiler 
+
+if [ $mload_exit_code -eq 0 ]; then
+  	loaded_compiler=true 
+# fcn - means full_compiler_name
+#fcn=` module list >& t; cat t | sed 's/\//-/g' | awk "/$compiler_m/" | awk '{ print $2 }' `
+
+#[ ! -z "$fcn" ] && compiler=`echo $fcn | sed 's/-/\//g'` 
+#[ ! -z "$fcn" ] && compiler_m="$fcn" 
+
+split_compiler_name $compiler 
+export FULL_COMPILER_NAME="$compiler"
+eoos "FULL_COMPILER_NAME=$compiler"
+export MAKE_OPTS=$make_opts
+else
+  	loaded_compiler=false
+fi
+eoos "end:  load_compiler()"
+# }}}
+}
+
+# }}}
+# make {{{
+mymake(){
+
+case $the_makefile in
+  	[Mm]akefile) make $* >> $log_file 2>> $log_file ;;
+	*) make -f $the_makefile $* 2>> $log_file >> $log_file ;;
+esac
+
+}
+
+compose_makefile(){
+
+tmp=` mktemp `
+pipe=""
+
+# $shd/"$this_script"_compose_makefile.sh $1 ${bu_opts[@]} >& $tmp
+
+# $1 is the makefile name
+cat_makefile_parts $1 ${bu_opts[@]} > $tmp
+
+case "$make_target" in
+  	CHGMIN) cat $tmp | sed '/BLAS_EXCLUDE_LIST/d' >& $2  ;;
+ 	*) cat "$tmp" >& $2 ;;
+esac
+
+}
+
+# }}}
+# }}}
+
+# }}}
+
+
+rmr(){
+rm $rm_opts $*
+}
+
+
+uppercase(){
+echo $* | awk '{ print toupper($0)} '
+}
+
+get_prog_name(){
+# {{{
+case $1 in
+  	g) s="gmin" ;;
+  	o) s="optim" ;;
+  	ps) s="pathsample" ;;
+	*) s="$1" ;;
+esac
+
+uppercase $s
+# }}}
+}
+
+make_bsx(){
+# {{{
+
+eoo "Creating self-extracting archive, on `date_dm_hm` by $USER@$HOSTNAME" 
+eo_fo
+
+eos
+
+file=$shd/iwg
+svnr=`$shd/sv v `
+ar=wg.$svnr.tar.gz
+$0 tgz
+
+#cat decom | sed "s/^creation_date=/&`date`/g" > n; mv n decom
+#cat decom | sed "s/^svnr=[.]*/svnr=`$shd/sv v`/g" > n; mv n decom 
+
+cat $shd/decom $wg_dir/$ar > $file
+chmod +rx $file
+
+[ -f $file ] && echo "$file created:"
+$file
+exit 0
+
+eos
+eo_fc 
+
+# }}}
+}
+
+bu_install(){
+# {{{
+ARCHIVE=`awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' $0`
+
+tail -n+$ARCHIVE $0 | tar xzv -C $FULL_INSTALL_DIR
+
+CDIR=`pwd`
+cd $FULL_INSTALL_DIR/SCRIPTS/op/
+./bu install  
+
+cd $CDIR
+rm -rf $TMPDIR
+# }}}
+}
+
+display_help(){
+  case "$1" in
+    	"") # full help message {{{
+cat << EOF
+==========================================
+SCRIPT NAME: $this_script
+PURPOSE: (re)compile Wales group software and produce related documentation
+USAGE: $this_script [ OPTIONS ]
+OPTIONS (also a finite set is ok):
+
+	h TOPIC		display help on a particular TOPIC; 
+				TOPICS:
+					'' 		- full help message
+					dirs		- directory variables inside the script 
+
+	-c compiler	specify full name of the compiler
+				e.g. COMPILER="pgi/64/10.9"
+
+	-bd bdir_index  build directory index (integer)
+
+	--with-charmm 	use charmm interface
+	--with-amber9   use amber9 interface
+
+	-nc		don't make clean
+	-mkf		specify the makefile name
+	-mo [ OPTS ] 	(original GMIN) makefile options. 
+
+			IMPORTANT: [] brackets should be present, if you want
+				to pass more than one option to the 
+				original Makefile!
+
+	vm		v(iew) m(yself), i.e. this script, and files
+				related to it; same as:
+			       		vf bu 
+				
+	v log 		view the bu.log file 
+	
+	av NAME		lists a subset of all available modules,
+       				with name starting with NAME
+				(uses modules av command); then exits.
+			Usage examples: 
+				bu av pgi (list all available pgi compilers)
+				bu av ifort/64/11 (list all available 64-bit 
+						 ifort compilers of version 11)
+
+	tg		run ctags -R * in all source dirs 
+
+	all
+	charmm
+
+	gmin
+	gmina		attempt to build all GMIN targets; equivalent to:
+				$this_script OPTS -mo [ GMIN CHGMIN AMBGMIN AMHGMIN ] gmin 
+				where OPTS are defined before 'gmina' option
+	optim
+	pathsample
+
+	ddps		disconnectionDPS & manipulate
+	==============
+	Doxygen
+	==============
+	dx TARGET	build doxygen documentation for TARGET. It may be: 
+				'' (zero string), all - all programs
+				g 	GMIN
+				o 	OPTIM
+				ps 	PATHSAMPLE
+				ds	DISCONNECT
+				Generated HTML documentation will be placed into 
+				\$wg_dir/dx/$PROGRAM_NAME, with PROGRAM_NAME=GMIN etc.
+	Usage example(s):	
+			bu dx (all programs); bu dx g (for GMIN only).
+	==============
+NOTATIONS:
+	WG	- 	Wales group :)
+	wg_dir	-	common directory for all WG software. On this
+				machine, it is:
+				$wg_dir
+REMARKS:
+
+Output is written to $this_script.log
+Produced executables will be copied to \$HOME/bin/ directory
+Current svn revision: $svn_rev
+
+========
+DEFAULTS:
+========
+
+COMPILER=$default_compiler
+
+==========================================
+AUTHOR: O. Poplavskyy
+==========================================
+EOF
+;;
+#}}}
+	"dirs") # {{{
+cat << EOF
+
+Directory variables - defined in function define_dirs()
+
+charmm_dir		CHARMM directory, 
+				$wg_dir/CHARMM31/ 
+
+scripts_dir		SCRIPTS directory,
+				$wg_dir/SCRIPTS/
+
+wg_dir			main Wales group svn directory, full path
+				e.g. /home/op226/svn/
+
+prog 			program name, e.g., GMIN
+
+install_dir		(tbc) installation directory, specified by 'prefix' option. 
+
+				It specifies where to install programs, documentation etc, e.g.:
+
+				Binaries are installed into \$install_dir/bin/
+				Man pages are copied to \$install_dir/man/
+					etc.
+				
+				By default, it is set to \$HOME   
+
+prog_source_dir		program's original source directory
+				full path: e.g. /home/op226/svn/GMIN/source
+
+builds_dir		general root directory inside which all builds should be placed,
+				e.g. \$wg_dir/BUILDS/
+
+root_build_dir		index-specific build directory, placed in \$wg_dir/BUILDS/\$bdir_index
+				e.g. /home/op226/svn/BUILDS/0/,
+				for bdir_index=0
+
+bdir_index (integer)	index of current build directory. From the command-line,
+				say it is equal to 3, it may be passed to $this_script as:
+					bu [ other options ] -bd 3 [ other options ] 
+
+bin_dir			prog_build_dir/bin, program's specific binaries
+				directory, e.g. \$HOME/svn/BUILDS/0/GMIN/bin
+
+source_dir		prog_build_dir/source, program's build source code,
+				i.e. this is the directory where we actually 
+				intend to run make and compile the code.
+				The path is e.g. for bdir_index=0
+				\$HOME/svn/BUILLDS/0/GMIN/source
+
+source_patterns		wildcard patterns for source files, e.g.
+				*.f *.f90 *.F etc.
+
+source_sub_dirs 	subdirectories in prog_source_dir,
+				which should be copied to source_dir; they are defined as:
+				GMIN 		=>	./ AMH CHARMMinterface  
+				OPTIM 		=>	./ AMH Bowman CHARMM CONNECT NEB  
+				PATHSAMPLE  	=> 	./ 
+
+EOF
+;;
+# }}}
+	nag) # {{{
+cat << EOF
+	-dusty
+
+Downgrades a number of common errors found in legacy code to
+warnings. Hence compilation can continue and also these warnings
+can be turned off by -w. This option implies -mismatch_all.
+
+	-mismatch
+
+Downgrades errors resulting from mismatch in argument lists to
+warnings. Calls to routines in the same file must still be correct.
+
+	-mismatch_all
+
+As -mismatch but even incorrect calls to routines in the same file
+are accepted.
+EOF
+	;;
+	# }}}
+esac
+}
+#}}}
+set_default_compiler
+cd $shd
+
+[ -z "$*" ] && display_help
+
+# main part 
+# {{{
+bu_opts=( $* ) 
+while [ ! -z "$1" ]; do
+	arg=$1
+			case "$1" in # read command-line arguments {{{
+				  ex) exists $2 ;;
+				  vm) $shd/vf $this_script ;;
+				  prefix) PREFIX=$2 ;;
+				  install) bu_install ;;
+			  	  dx | charmm | gmin | optim | pathsample | bsx | tgz ) build_bu_target $* ;;
+				  # options {{{
+				  base) make_base=true ;;
+				  openmpi | lam | mpich) other_opts=( ${other_opts[@]} $arg ) ;;
+				  mpi | chi | amber) var=$1; export use_$var=true ;;
+				  fmkmf | makemake) use_$1=true ;;
+				  -p) prog=` get_prog_name $2 `; shift; define_dirs ;;
+				  -nc) make_clean=0 ;;
+			       	  -mkf) export the_makefile="$2" ;;
+				  # }}}
+				  # debugging {{{
+				  debug | debugslow | opt | noopt | mismatch) 
+					debug_opt=$arg
+				  	case $arg in
+					  	opt) opt_level=3
+							case "$2" in
+							  	[0-3]) opt_level=$2 ;;
+							esac
+							;;
+						noopt) opt_level=0  ;;
+					esac
+					debug_opts=( ${debug_opts[@]} $debug_opt ) 
+				  ;;
+				  # }}}
+				h) #display help  {{{
+				display_help $2 ;;
+			      #}}}
+			      	avh) mhelp ` bu av $2 | awk 'NR==1 { print $2 }' ` ;;
+			  	av) # display available modules {{{
+					get_mav
+				if [ ! -z "$2" ]; then
+				  	compiler=$2
+					f_slash='\/'
+					b_slash='\\'
+				  	seds=`echo $2 \
+					| sed "s/$f_slash/$b_slash$f_slash/g"`
+					cat mav | sed -n "/^$seds/p" > mav.n; mv mav.n mav
+				fi
+				modules=( `cat mav` )
+					let mi=1
+					for m in ${modules[@]}
+						do
+						  printf "%i\t%s\n" $mi $m
+						  mi=$(($mi+1))
+					done
+					exit
+				;;
+				# }}}
+				tg) make_tags ;;
+							-bd) # integer index for the build directory {{{
+				let bdir_index=$2; write_sep_log_file=true 
+				;;
+			       #}}}	
+			       # compilers {{{
+       #                                 #shortest {{{
+				#nag | ifort | pgi) 
+					##compiler_num=` bu av $1/64/ `
+					##$0 -c $1 $compiler_num		
+					#mload $1
+					#compiler=` mlist $1 | awk "/$1/" | awk '{print $2}' `
+					#munload $1 
+					##munload $1
+				#;;
+				##}}}
+				-nm) use_modules=false ;;
+				# compilers {{{
+				ifort* | nag* | pgi* | gfortran*) get_compiler $1 ;;
+			  	-c) 
+				case "$3" in
+				  	[0-9]+) get_compiler $2 $3 ;; 
+				  	*) get_compiler $2 ;; 
+				esac
+				;;
+				# }}}
+				# }}}
+			  	all) $0 "${bu_targets[@]}" ; exit ;;
+				v | rm) do_$1 $2; shift ;; 
+				# other gmin targets  {{{
+				chgmin) $0 -mo [CHGMIN] gmin ;;
+				ambgmin) $0 -mo [AMBGMIN] gmin ;;
+				amhgmin) $0 -mo [AMHGMIN] gmin ;;
+				# }}}
+				-mo) # options passed to makefile through command-line {{{
+					if [ ! -z "$2" ]; then
+					  	shift
+						make_opts=( ` echo "$*" \
+							| sed 's/^[  ]*\[//'  \
+							| awk -F "]" '{ print $1 }' ` ) 
+				        fi
+					make_targets=( ` echo ${make_opts[@]} ` )
+				 	;;
+				# }}}
+				gmina) $0 -mo [ GMIN CHGMIN AMBGMIN AMHGMIN ] gmin ;;
+				ddps) # {{{
+					cd $wg_dir/DISCONNECT/source 
+					make clean
+				       	make 
+					cp disconnectionDPS manipulate $idir
+				       	cd - 
+					;;
+					# }}}
+			esac
+			# }}}
+			shift
+done
+cd $old_dir
+# }}}
+

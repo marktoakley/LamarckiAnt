@@ -1,0 +1,10 @@
+from setuptools import setup, find_packages
+
+setup(
+    name = "ChiralityScripts",
+    version = "0.0",
+    package_dir={ '': '${SVN_ROOT}/SCRIPTS/AMBER/chirality' },
+    packages = find_packages(),
+#    scripts = ['amino_acids.py', 'chirality.py', 'cistrans.py', 'elements.py', 'read_amber.py'],
+    install_requires = ['networkx>=1.9']
+)

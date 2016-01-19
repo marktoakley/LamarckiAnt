@@ -1,0 +1,449 @@
+Extension: /scratch/khs26/svn/GMIN/source/modcudalbfgs.F90, line 8: USE,INTRINSIC statement detected at ,@INTRINSIC
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 81: BIND(C) attribute detected at ,@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 107: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 355: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 381: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 498: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 552: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 646: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 777: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 905: ALLOCATABLE dummy argument ATOMS detected at ::@ATOMS
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 907: ALLOCATABLE dummy argument RESIDUES detected at ::@RESIDUES
+Extension: /scratch/khs26/svn/GMIN/source/chdummy.f, line 533: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/chdummy.f, line 538: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 53: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 78: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 356: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 361: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 367: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 373: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 377: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 383: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 389: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 394: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 400: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 409: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 410: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 411: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 412: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/commons.f90, line 413: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/grafpack.f90, line 28966: ALLOCATABLE dummy argument PATHS detected at ::@PATHS
+Extension: /scratch/khs26/svn/GMIN/source/chirality.F90, line 73: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/ps_intra_polir_b.f90, line 96: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/ps_intra_polir_b.f90, line 182: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/ps_intra_polir_b.f90, line 268: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/ps_intra_polir_b.f90, line 354: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/polirmod.f90, line 991: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/polirmod.f90, line 1541: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/polirmod.f90, line 1542: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/polirmod.f90, line 1722: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/polirmod.f90, line 1725: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/polirmod.f90, line 1757: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/polirmod.f90, line 1760: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/chiro.f90, line 467: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/ga_modules.f90, line 49: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/overlap.f90, line 51: ALLOCATABLE structure component detected at ,@ALLOCATABLE
+Extension: /scratch/khs26/svn/GMIN/source/overlap.f90, line 52: ALLOCATABLE structure component detected at ,@ALLOCATABLE
+Extension: /scratch/khs26/svn/GMIN/source/ljpshift.f90, line 235: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/measure.f90, line 54: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/measure.f90, line 87: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/measure.f90, line 107: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/measure.f90, line 159: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/measure.f90, line 190: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/py.f90, line 38: ALLOCATABLE structure component detected at ,@ALLOCATABLE
+Extension: /scratch/khs26/svn/GMIN/source/py.f90, line 862: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/sandbox.f90, line 19: ALLOCATABLE structure component detected at ,@ALLOCATABLE
+Extension: /scratch/khs26/svn/GMIN/source/sandbox.f90, line 29: ALLOCATABLE structure component detected at ,@ALLOCATABLE
+Extension: /scratch/khs26/svn/GMIN/source/sandbox.f90, line 829: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/sandbox.f90, line 837: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/sandbox.f90, line 842: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/ttm3f.f90, line 139: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/ttm3f.f90, line 225: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/ttm3f.f90, line 311: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/ttm3f.f90, line 397: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/wenzel.f, line 49: More than 19 continuation lines detected at <end-of-statement>@<end-of-statement>
+Extension: /scratch/khs26/svn/GMIN/source/wenzel.f, line 80: More than 19 continuation lines detected at <end-of-statement>@<end-of-statement>
+Extension: /scratch/khs26/svn/GMIN/source/wenzel.f, line 111: More than 19 continuation lines detected at <end-of-statement>@<end-of-statement>
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 63: TAB format input
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 65: TAB format input
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 78: TAB format input
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 79: TAB format input
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 80: TAB format input
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 81: TAB format input
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 82: TAB format input
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 83: TAB format input
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 84: TAB format input
+Extension: /scratch/khs26/svn/GMIN/source/Ackland_wrapper.f, line 86: TAB format input (further warnings suppressed)
+Extension: /scratch/khs26/svn/GMIN/source/fedor.f, line 144: More than 19 continuation lines detected at <end-of-statement>@<end-of-statement>
+Extension: /scratch/khs26/svn/GMIN/source/rigidfuncs.f, line 135: More than 19 continuation lines detected at <end-of-statement>@<end-of-statement>
+Extension: /scratch/khs26/svn/GMIN/source/minperm.f, line 74: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/minperm.f, line 75: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/minperm.f, line 77: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/minperm.f, line 289: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/minperm.f, line 290: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/minperm.f, line 291: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/minperm.f, line 292: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/minperm.f, line 294: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/minperm.f, line 295: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/Natb.f, line 60: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/Natb.f, line 544: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/Natb.f, line 595: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/Natb.f, line 649: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/papbin.f90, line 186: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/patchy.f90, line 7: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/projI.f90, line 50: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/projI.f90, line 195: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/reservoir_utils.f90, line 317: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/asaoos.f90, line 258: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/asaoos.f90, line 529: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 30: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 31: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 70: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 78: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 81: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 84: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 107: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 108: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 122: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dihedralrotation.f90, line 124: Line longer than 132 characters - further long line messages suppressed
+Extension: /scratch/khs26/svn/GMIN/source/hbondmatrix.f90, line 31: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/hbondmatrix.f90, line 197: Scalar CHARACTER supplied for dummy PDB_NAME (no. 2) of AMBER12_WRITE_PDB
+Extension: /scratch/khs26/svn/GMIN/source/dbpg.f90, line 3: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dbpg.f90, line 121: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dbpg.f90, line 127: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dbpg.f90, line 133: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/bulkmindist.f90, line 171: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/getorbits.f90, line 15: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/biased_torsional_sampling.f90, line 149: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/projIh.f90, line 50: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/projIh.f90, line 424: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 789: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 1182: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 1638: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 1731: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 1824: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 1917: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 2070: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 2559: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 2693: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 2772: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 2942: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 3045: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 3204: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 3283: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 3417: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 3520: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 3690: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 3817: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 3944: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 4023: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 4198: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 4373: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 4476: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 4795: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 5092: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 5171: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 5346: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/CSMinit.f90, line 5449: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/GMIN/source/dampedmove.f90, line 40: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dampedmove.f90, line 64: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dampedmove.f90, line 85: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/dampedmove.f90, line 128: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/finalio.f90, line 367: Scalar CHARACTER supplied for dummy RST_NAME (no. 2) of AMBER12_WRITE_RESTART
+Extension: /scratch/khs26/svn/GMIN/source/finalio.f90, line 373: Scalar CHARACTER supplied for dummy PDB_NAME (no. 2) of AMBER12_WRITE_PDB
+Extension: /scratch/khs26/svn/GMIN/source/finalio.f90, line 381: Scalar CHARACTER supplied for dummy RST_NAME (no. 2) of AMBER12_WRITE_RESTART
+Extension: /scratch/khs26/svn/GMIN/source/finalio.f90, line 384: Scalar CHARACTER supplied for dummy PDB_NAME (no. 2) of AMBER12_WRITE_PDB
+Extension: /scratch/khs26/svn/GMIN/source/finalio.f90, line 392: Scalar CHARACTER supplied for dummy XYZ_NAME (no. 2) of AMBER12_WRITE_XYZ
+Extension: /scratch/khs26/svn/GMIN/source/finalio.f90, line 397: Scalar CHARACTER supplied for dummy XYZ_NAME (no. 2) of AMBER12_WRITE_XYZ
+Extension: /scratch/khs26/svn/GMIN/source/bspt_utils.f90, line 798: Line longer than 132 characters
+Extension: /scratch/khs26/svn/GMIN/source/mc.F, line 544: Scalar CHARACTER supplied for dummy RST_NAME (no. 2) of AMBER12_WRITE_RESTART
+Extension: /scratch/khs26/svn/GMIN/source/mc.F, line 545: Scalar CHARACTER supplied for dummy PDB_NAME (no. 2) of AMBER12_WRITE_PDB
+Extension: /scratch/khs26/svn/GMIN/source/mc.F, line 1369: Scalar CHARACTER supplied for dummy RST_NAME (no. 2) of AMBER12_WRITE_RESTART
+Extension: /scratch/khs26/svn/GMIN/source/mc.F, line 1371: Scalar CHARACTER supplied for dummy PDB_NAME (no. 2) of AMBER12_WRITE_PDB
+Extension: /scratch/khs26/svn/GMIN/source/mc.F, line 1820: Scalar CHARACTER supplied for dummy RST_NAME (no. 2) of AMBER12_WRITE_RESTART
+Extension: /scratch/khs26/svn/GMIN/source/mc.F, line 1822: Scalar CHARACTER supplied for dummy PDB_NAME (no. 2) of AMBER12_WRITE_PDB
+Extension: /scratch/khs26/svn/GMIN/source/mc.F, line 1836: Scalar CHARACTER supplied for dummy PDB_NAME (no. 2) of AMBER12_WRITE_PDB
+Extension: /scratch/khs26/svn/GMIN/source/mc.F, line 1838: Scalar CHARACTER supplied for dummy PDB_NAME (no. 2) of AMBER12_WRITE_PDB
+Extension: /scratch/khs26/svn/AMBER/src/sander/constants.f, line 111: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/constants.f, line 128: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/constants.f, line 145: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/constants.f, line 168: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/constants.f, line 186: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 159: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 255: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 262: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 266: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 268: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 289: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 290: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 291: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 411: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qmmm_module.f, line 415: Line longer than 132 characters - further long line messages suppressed
+Extension: /scratch/khs26/svn/AMBER/src/sander/stack.f, line 134: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/egb.f, line 533: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/AMBER/src/sander/egb.f, line 599: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/AMBER/src/sander/egb.f, line 1626: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/egb.f, line 2163: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/AMBER/src/sander/egb.f, line 2229: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 25: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 49: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 50: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 51: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 52: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 53: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 54: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 55: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 56: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 57: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 74: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 75: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 76: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 81: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/dc_module.f, line 90: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/element_module.f, line 12: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/element_module.f, line 13: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/freq_module.f, line 15: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/freq_module.f, line 16: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/freq_module.f, line 17: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/freq_module.f, line 18: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/freq_module.f, line 19: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/freq_module.f, line 20: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/int_module.f, line 31: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/int_module.f, line 35: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/int_module.f, line 38: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/int_module.f, line 39: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/int_module.f, line 40: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 15: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 21: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 22: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 23: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 24: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 25: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 26: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 34: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 35: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 36: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 37: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 38: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 39: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 40: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 41: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 42: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 43: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 44: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 45: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 46: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mc_module.f, line 47: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/min_module.f, line 15: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/min_module.f, line 18: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/min_module.f, line 19: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/min_module.f, line 20: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 49: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 50: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 51: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 52: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 53: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 54: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 57: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 58: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 59: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 60: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mm_module.f, line 62: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 14: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 22: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 23: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 25: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 28: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 47: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 52: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 60: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 80: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 98: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 110: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndod_module.f, line 124: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndonmr_module.f, line 11: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndonmr_module.f, line 15: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndonmr_module.f, line 16: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndonmr_module.f, line 17: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/mndonmr_module.f, line 18: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 14: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 15: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 19: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 20: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 21: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 22: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 23: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 24: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 25: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 26: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 27: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 28: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 29: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/nmr_module.f, line 30: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/param_module.f, line 31: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/param_module.f, line 40: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pddgpm3_module.f, line 17: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 12: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 13: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 14: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 15: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 16: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 17: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 18: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 19: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 20: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/pme_module.f, line 21: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 11: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 14: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 15: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 16: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 17: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 18: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 19: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 20: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 21: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 22: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 23: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 24: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 25: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 26: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 27: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 28: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 36: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/scf_module.f, line 37: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/tools_module.f, line 12: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 95: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 96: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 97: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 98: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 99: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 101: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 105: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 106: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 107: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 108: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 109: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 110: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 111: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 112: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 113: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 114: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 115: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 117: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 118: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 119: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 120: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 121: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 122: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 125: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 126: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 127: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 128: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 129: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 130: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 131: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 132: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 133: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 134: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 135: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 136: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 137: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 138: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 139: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 140: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 141: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 147: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 152: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 153: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 154: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 155: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 158: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 180: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 192: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 195: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 201: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 202: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 203: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 206: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 210: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 211: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 213: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 242: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 245: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 251: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/global_module.f, line 252: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 19: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 25: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 29: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 32: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 35: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 38: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 41: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 49: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 50: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/save_module.f, line 58: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/spatial_recip.f, line 123: DOUBLE COMPLEX keyword detected at <end-of-statement>@DOUBLE COMPLEX
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_setup_orb_exp.f, line 440: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_phihelp.h, line 4: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_phihelp.h, line 4: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_phihelp.h, line 4: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qmmm_forces.f, line 85: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/new_stuff.f, line 26: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/new_stuff.f, line 213: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/new_stuff.f, line 349: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1091: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1095: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1099: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1103: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1107: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1111: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1115: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1124: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1134: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_get_qm_forces.f, line 1401: Line longer than 132 characters - further long line messages suppressed
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_gb.f, line 116: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_gb.f, line 417: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_gb.f, line 419: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_gb.f, line 423: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_gb.f, line 429: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_gb.f, line 445: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/mdfil.f, line 334: Byte count on numeric data type detected at *@4
+Extension: /scratch/khs26/svn/AMBER/src/sander/getm.f, line 24: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_link_atoms.f, line 591: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_link_atoms.f, line 595: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/amberinterface.f, line 663: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/amberinterface.f, line 3005: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/AMBER/src/sander/amberinterface.f, line 3376: More than 39 continuation lines detected at ,@,
+Extension: /scratch/khs26/svn/AMBER/src/sander/amberinterface.f, line 4810: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_mm_div.f, line 82: Byte count on numeric data type detected at *@4
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_mm.f, line 962: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/putvar.f, line 24: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/ew_fft.f, line 1728: DOUBLE COMPLEX keyword detected at <end-of-statement>@DOUBLE COMPLEX
+Extension: /scratch/khs26/svn/AMBER/src/sander/ew_fft.f, line 1729: DOUBLE COMPLEX keyword detected at <end-of-statement>@DOUBLE COMPLEX
+Extension: /scratch/khs26/svn/AMBER/src/sander/veclib.f, line 184: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/getf.f, line 24: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_ewald.f, line 960: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm_ewald.f, line 1126: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2190: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2318: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2322: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2473: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2477: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2525: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2529: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2747: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2751: Line longer than 132 characters
+Extension: /scratch/khs26/svn/AMBER/src/sander/qm2_load_params_and_allocate.f, line 2799: Line longer than 132 characters - further long line messages suppressed
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 81: BIND(C) attribute detected at ,@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 107: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 355: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 381: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 498: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 552: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 646: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 777: BIND(C) attribute detected at )@BIND
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 905: ALLOCATABLE dummy argument ATOMS detected at ::@ATOMS
+Extension: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 907: ALLOCATABLE dummy argument RESIDUES detected at ::@RESIDUES
+Extension: /scratch/khs26/svn/GMIN/source/modcudalbfgs.F90, line 8: USE,INTRINSIC statement detected at ,@INTRINSIC
+Extension: /scratch/khs26/svn/GMIN/source/chdummy.f, line 533: Byte count on numeric data type detected at *@8
+Extension: /scratch/khs26/svn/GMIN/source/chdummy.f, line 538: Byte count on numeric data type detected at *@8

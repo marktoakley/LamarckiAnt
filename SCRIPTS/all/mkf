@@ -1,0 +1,14 @@
+
+
+PRF=$(SCRIPTS_PATH)/all/porfuncs.csh
+
+porfuncs.f90: $(PRF)
+	$(PRF) ${SWITCH} > porfuncs.f90
+
+
+DV=$(SCRIPTS_PATH)/all/display_version.sh
+
+DVOPTS=fflags "${FFLAGS}" prog $(PROGNAME) fc_full_name "${FULL_COMPILER_NAME}" fc_exec "${FC}" make_opts "${MAKE_OPTS}" 
+
+display_version.f90: ${DV} 
+	${DV} ${DVOPTS} > display_version.f90

@@ -1,0 +1,319 @@
+#!/bin/bash
+
+# preliminary part {{{
+
+export shd="`dirname $(readlink -f $0)`"
+export wg_dir="$shd/../../"
+source $shd/sh_header.sh
+
+d="$wg_dir/GMIN/source"
+p="GMIN"
+file="keyword.f"
+export p_arg="g"
+istex=false
+opts=""
+tags=( begin init read kwd end ) 
+textags=( preamble frontpage intro kwd systems examples end ) 
+kwd_dir=$wg_dir/keywords; mkdir -p $kwd_dir
+
+# }}}
+
+# functions {{{
+
+check_kwd_existence(){
+# this subroutine checks whether a given keyword exists
+#{{{
+kwd0=$1
+
+#[ -f "$shd/kwds.$p" ]
+#}}}
+}
+
+split_file_re(){
+# {{{
+
+# define regular expression patterns re0, res 
+
+# fortran section {{{ 
+
+re0="ELSEIF\(WORD.EQ." 
+res=( "ELSEIF" "WORD.EQ." "THEN" "(" ")" "'" )
+sed1="s/\![ .\w]*$//g; s/[\t ]*//g"
+
+# }}}
+
+# tex section {{{
+
+if $istex; then 
+	re0="^\\\\item[ ]*{[ ]*\\\\it[ ]+"  
+	res=( "$re0" "" ) 
+	sed1="/^$/p"
+fi
+#}}}
+
+seds=""
+for re in ${res[@]}; do
+	seds="$seds s/$re//g; "
+done
+
+ot="<kwd>" ; ct="<\/kwd>"
+
+# pipe through awk and sed 
+# tex section {{{ 
+
+if $istex; then
+          #$0 $p_arg tex catkwd | sed "$sed1" | sed "s/$re0//g" \
+$0 $p_arg tex catkwd | awk -F "}" "BEGIN{i=0} /$re0/ { i+=1; print NR, i, \$1 }" \
+	        | awk '{ print $1, $2, $5 }'	\
+		| sed 's/\/$//g; s/\\//g'
+	  # }}}
+else
+  # fortran section {{{
+	cat $d/$file | sed -e "/$ot/,/$ct/ { /$ot/b; /$ct/b } " | sed "$sed1"  \
+	| awk "BEGIN{i=0} /$re0/ { i+=1; print NR, i, \$0 }"  \
+	| sed "$seds" | sed '/!/d'
+# }}}
+fi
+
+#}}}
+}
+
+process_opt(){
+#{{{
+opts="$opts $1"	
+
+case "$1" in
+  	tex) istex=true ; file=$p.tex ; d=$wg_dir/DOC/ ;;
+esac
+#}}}
+}
+
+print_code(){
+# show the keyword-specific part of the source code (documentation) 
+# {{{
+
+kwd="$1"; select_file ; c="$0 $p_arg $opts k 1" 
+
+#kwd_exists=` check_kwd_existence $kwd `
+#if [ "$kwd_exists"=="yes" ]; then
+
+kwd_ln_start=` $c | awk "/[ ]+$kwd$/" | awk '{ print $1}' `
+kwd_nr=` $c | awk "/[ ]+$kwd$/ { print NR }" `
+kwd_ln_end=` $c | awk "NR==$kwd_nr+1" | awk '{ print $1 }' `
+
+if $istex; then 
+	num=0
+	cat_action="$0 $p_arg $opts catkwd" 
+  else
+	num=1	
+	cat_action="cat $d/$file"
+fi
+
+[ ! -z "$kwd_nr" ] && $cat_action | awk "NR==$kwd_ln_start+$num,NR==$kwd_ln_end-1"	 
+
+# }}}
+}
+
+print_kwd_info(){
+#{{{  
+while [ ! -z $* ]; do 
+		[ -f $1 ] && echo "Generated: ` basename $1 ` size: ` wc -c $1 | awk '{print $1}'` bytes "
+		shift
+done
+#}}}
+}
+
+display_help_message(){
+# {{{
+cat << EOF
+========================================
+SCRIPT NAME: $this_script
+PURPOSE: cat/more/less different files (+ some other actions)
+USAGE: $this_script [ PROGRAM FILE ACTION ]
+	If no command-line options are specified, display this help message
+PROGRAM:
+	g => GMIN
+	o => OPTIM
+	p => PATHSAMPLE
+FILE:	
+	k => keyword(s).f
+OPTIONS:
+	tex => use tex files in the DOC/ subdirectory
+ACTION:
+	========================
+	keyword-relevant
+	========================
+	pak	
+		print the list of all keywords
+
+	pk STRING	
+		print the list of keywords containing STRING. And its variants:
+			pkb STRING - keywords starting with STRING
+			pke STRING - keywords ending with STRING
+
+	pkc print_keyword_code KEYWORD
+       		
+		display source code relevant for KEYWORD.
+		Example(s): 
+			cf g pkc TETHER - display GMIN code for keyword TETHER
+			cf o pkc BLN - display OPTIM code for keyword BLN
+
+	skc split_keyword_code STRING
+
+		split file keyword(s).f on keywords which contain STRING; if STRING is zero,
+	      	it means for all keywords;  then, for each keyword,
+		print keyword-specific code into a separate file
+	        called \$p_arg.\$kwd.f, with variables 
+		p_arg=PROGRAM; kwd=KEYWORD (which runs over all keywords)
+
+	skc0 	put all special sections of keyword(s).f into separate files:
+			_begin - contains:
+		       			subroutine declaration,
+					use statements, and 
+					variable declarations
+			_init  - contains:
+					variable assignments and initializations 
+			_read  - open keyword input file and start processing it;
+		       			account for some important cases	
+			_end   - final section of the file. 
+
+	stex KEYWORD - split tex documentation files based on TAG into separate pieces,
+			and put them into keywords/
+DEFAULTS:
+	p_arg=g i.e. we work with GMIN
+	FILE=keyword.f
+========================================
+AUTHOR: O. Poplavskyy
+========================================
+			 
+EOF
+# }}}
+}
+
+select_file(){
+# {{{
+#f_arg="$1"
+if $istex; then 
+  	file=$p.tex 
+else
+case "$p" in 
+	  GMIN) file=keyword.f ;;
+	  OPTIM | PATHSAMPLE) file=keywords.f ;;
+esac
+fi
+# }}}
+}
+
+#}}}
+
+pp(){
+# relation between g => GMIN, o => OPTIM etc.
+#{{{
+case "$1" in
+	g | gmin) echo  "GMIN" ;;
+	o | optim) echo "OPTIM" ;;
+	ps | pathsample) echo "PATHSAMPLE";;
+	ds | disconnect) echo "DISCONNECT";;
+esac
+#}}}
+}
+
+[ -z "$*" ] && display_help_message && exit
+
+# main part
+# {{{
+
+while [ ! -z "$1" ] 
+	do
+		case "$1" in 
+		  	# programs {{{
+		 	 "g" | gmin | optim | "o" | pathsample | "ps" | "ds") 
+			 	p_arg="$1"
+				p=`pp $p_arg`
+				d="$wg_dir/$p/source"
+				select_file
+			;;
+			a) p_args=( gmin optim pathsample )
+				shift
+				for p00 in ${p_args[@]}	
+			       		do
+					  echo "================="
+					  echo "`pp $p00`"
+					  echo "================="
+					  $0 $p00 $*
+				done	  
+				exit
+			;;
+			# }}}
+			# files {{{
+			k) select_file $1 ;; 
+			# }}}
+			# options {{{
+			tex) process_opt $1 ;;
+			# }}}
+			# actions {{{
+			1) split_file_re ;;
+			cat*) 
+				select_file
+				tag=` echo "$1" | sed 's/^cat//g' `
+
+				case "$tag" in
+				  	"") cat $d/$file ;;
+					*) 
+						ot="<$tag>" ; ct="<\/$tag>"
+						cat $d/$file | awk "/$ot/,/$ct/" | sed "/$ot/d; /$ct/d"
+					;;
+				esac
+			;;
+			2 | pak | print_all_keywords) # produce a list of all keywords {{{  
+			#$0 $p_arg k 1 | awk '{ print $3 }' | sed '/[a-z]*/d' ;;  
+			$0 $p_arg k 1 | awk '{ print $3 }'  ;;  
+			# }}}
+			pk) $0 $p_arg pak | awk "/$2/" ;;
+			pkb) $0 $p_arg pak | awk "/^$2/" ;;
+			pke) $0 $p_arg pak | awk "/$2$/" ;;
+			pkc | print_keyword_code) print_code $2 ;;
+			pkd) $0 $p_arg tex catkwd | awk "/$2/" ;;
+			stex0) # split tex documentation files, special parts  {{{
+				for tag in ${textags[@]}
+					do
+					  	kwd_tex_file=$kwd_dir/_$tag.$p_arg.tex
+						[ ! "$tag"=="kwd" ]  && $0 tex cat$tag >& $kwd_tex_file 
+					  	print_kwd_info $kwd_tex_file
+	      		        done
+				;;
+			      # }}}
+			stex)  #{{{
+				kwds=( ` $0 $p_arg pak | awk "/^$2/"` )
+		        #}}}
+			;;
+			skc0) # {{{
+				for tag in ${tags[@]}
+					do
+					  	kwd_file=$kwd_dir/_$tag.$p_arg.f
+						[ ! $tag=="kwd" ] && $0 cat$tag >& $kwd_file 
+					  	print_kwd_info $kwd_file
+	      		        done
+				;;
+			      #}}}
+			skc | split_keyword_code) 
+			# split file keyword(s).f on keywords; then
+			# print keyword-specific code into separate file
+		        # called $p_arg.$kwd.f
+			# {{{
+				kwds=( ` $0 $p_arg pak | awk "/^$2/"` )
+				
+				for kwd in ${kwds[@]}
+					do
+					  kwd_file=$kwd_dir/$kwd.$p_arg.f
+					  $0 $p_arg pkc $kwd >& $kwd_file
+					  print_kwd_info 
+				done
+			# }}}
+			;;
+			# }}}
+		esac	
+		shift
+done
+# }}}
+

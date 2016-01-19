@@ -1,0 +1,16 @@
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 378: INTENT(OUT) dummy argument COORDS never set detected at AMBER12_GET_COORDS@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 496: INTENT(OUT) dummy argument ENERGY never set detected at AMBER12_ENERGY_AND_GRADIENT@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 496: INTENT(OUT) dummy argument DECOMPOSED_ENERGY never set detected at AMBER12_ENERGY_AND_GRADIENT@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 496: INTENT(OUT) dummy argument GRADIENTS never set detected at AMBER12_ENERGY_AND_GRADIENT@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 1009: INTENT(OUT) dummy argument RESIDUES never set detected at POPULATE_ATOM_DATA@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 1009: INTENT(OUT) dummy argument ATOMS never set detected at POPULATE_ATOM_DATA@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/build/porfuncs.f90, line 12: INTENT(OUT) dummy argument ISTAT never set detected at FLUSH@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/ljpshift.f90, line 1102: INTENT(OUT) dummy argument V never set detected at LJPSHIFT_INTERACTION_LIST5@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/tryexchange_independence.F90, line 368: INTENT(OUT) dummy argument EXCHANGEACCEPT never set detected at TRYEXCHANGE_INDEPENDENCE@<end-of-statement>
+Warning: /scratch/khs26/svn/GMIN/source/tryexchange.F90, line 480: INTENT(OUT) dummy argument EXCHANGEACCEPT never set detected at TRYEXCHANGE@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 378: INTENT(OUT) dummy argument COORDS never set detected at AMBER12_GET_COORDS@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 496: INTENT(OUT) dummy argument ENERGY never set detected at AMBER12_ENERGY_AND_GRADIENT@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 496: INTENT(OUT) dummy argument DECOMPOSED_ENERGY never set detected at AMBER12_ENERGY_AND_GRADIENT@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 496: INTENT(OUT) dummy argument GRADIENTS never set detected at AMBER12_ENERGY_AND_GRADIENT@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 1009: INTENT(OUT) dummy argument RESIDUES never set detected at POPULATE_ATOM_DATA@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER12/amber12_interface.F90, line 1009: INTENT(OUT) dummy argument ATOMS never set detected at POPULATE_ATOM_DATA@<end-of-statement>

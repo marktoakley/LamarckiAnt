@@ -1,0 +1,211 @@
+C   GMIN: A program for finding global minima
+C   Copyright (C) 1999-2006 David J. Wales
+C   This file is part of GMIN.
+C   Loop structure recoded by J.A. Elliott 2009
+C
+C   GMIN is free software; you can redistribute it and/or modIFy
+C   it under the terms of the GNU General Public License as published by
+C   the Free Software Foundation; either version 2 of the License, or
+C   (at your option) any later version.
+C
+C   GMIN is distributed in the hope that it will be useful,
+C   but WITHOUT ANY WARRANTY; without even the implied warranty of
+C   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C   GNU General Public License for more details.
+C
+C   You should have received a copy of the GNU General Public License
+C   along with this program; IF not, write to the Free Software
+C   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+C
+C
+C*************************************************************************
+C
+C   BINARY GUPTA POTENTIAL
+C   CJH 12/2011
+C
+C   MODIFIED BY DS656 (03/2013)
+C
+C*************************************************************************
+C
+      MODULE BGUPMOD
+      
+      DOUBLE PRECISION AAA,AAB,ABB,PAA,PAB,PBB,QAA,QAB,QBB,ZAA,ZAB,ZBB,
+     1     R0AA,R0AB,R0BB
+      DOUBLE PRECISION, ALLOCATABLE :: AARRAY(:,:), AARRAY2(:,:), ZARRAY(:,:), 
+     1     PARRAY(:,:), QARRAY(:,:), R0ARRAY(:,:)
+!     Note: CJH had these arrays defined as REAL, which fully accounts for
+!     some minor numerical discrepancies between the current BGupta and
+!     as it was before.
+!     Generate parameter arrays with atom types reversed
+      DOUBLE PRECISION, ALLOCATABLE :: AARRAY_MOD(:,:), ZARRAY_MOD(:,:), 
+     1     PARRAY_MOD(:,:), QARRAY_MOD(:,:), R0ARRAY_MOD(:,:)
+      CHARACTER(LEN=2) :: BGUPTANAME1,BGUPTANAME2
+      
+      END MODULE BGUPMOD
+      
+      SUBROUTINE BGUPTA (X,V,PG,GRADT)
+      USE commons
+      USE BGUPMOD
+      IMPLICIT NONE
+      INTEGER J1, J2, J13, J23, ATOMTYPE, MBI
+      DOUBLE PRECISION X(3*NATOMS), PG, DIST, V(3*NATOMS), DX, DY, DZ,
+     1     GRHO(NATOMS), VTEMP, DUMMY, DISTANCE_MATRIX(NATOMS,NATOMS),
+     2     VTEMP1(NATOMS), VTEMP2(NATOMS), VTEMP3(NATOMS), PWR1, PWR2
+      LOGICAL GRADT
+      
+C     Do some initialisations
+      DISTANCE_MATRIX(1:NATOMS,1:NATOMS)=0.0D0
+      GRHO(:)=0.0D0
+      VT(1:NATOMS) = 0.0D0
+      MBI = 2 ! Many-Body Index (2 for Gupta; 1 for Morse-like pair pot.)
+      PWR1 = 1.0D0/DBLE(MBI)
+      PWR2 = PWR1-1.0D0
+      
+      DO J1=1,NATOMS-1          ! outer loop over all atoms except last
+         DO J2=J1+1,NATOMS      ! first inner loop over all J2>J1
+            J13 = 3*(J1-1)
+            J23 = 3*(J2-1)
+!     calc and store distance between atoms J1,J2
+            DIST = DSQRT( ( X(J23+1)-X(J13+1) )**2 +
+     1           ( X(J23+2)-X(J13+2) )**2 + ( X(J23+3)-X(J13+3) )**2 )
+            
+            DISTANCE_MATRIX(J2,J1)=DIST ! store distance
+            DISTANCE_MATRIX(J1,J2)=DIST ! impose symmetry
+            
+            DIST=DIST/R0ARRAY(J1,J2)
+            
+            DUMMY = AARRAY(J1,J2)*DEXP(PARRAY(J1,J2) * (1-DIST))
+            VT(J1) = VT(J1) + DUMMY
+            VT(J2) = VT(J2) + DUMMY
+            
+            DUMMY = DEXP(2.0D0 * QARRAY(J1,J2) * (1-DIST)) ! calculate many-body potential term
+            DUMMY = DUMMY * ZARRAY(J1,J2)**MBI
+            GRHO(J1) = GRHO(J1) + DUMMY
+            GRHO(J2) = GRHO(J2) + DUMMY
+            
+         ENDDO                  ! END inner loop over all J2>J1
+      ENDDO                     ! END outer loop over all atoms except last
+      
+!     Now store the potential energy of each atom in array VT and sum over all atoms
+      
+      PG=0.0D0
+      DO J1=1,NATOMS
+         !GRHO(J1)=DSQRT(GRHO(J1)) ! square root density
+         VT(J1) = VT(J1) - GRHO(J1)**PWR1 ! accummulate per-atom energy
+         PG = PG + VT(J1)       ! accumulate potential energy
+      ENDDO
+      
+!     Calculate gradient terms, if required
+      
+      IF (GRADT) THEN
+!     initialise total gradient terms
+         V(:) = 0.0d0
+         VTEMP1(:)=0.0D0
+         VTEMP2(:)=0.0D0
+         VTEMP3(:)=0.0D0
+         
+         DO J1=1,NATOMS-1       ! outer loop over all atoms except last
+            !DUMMY=1.0D0/GRHO(J1) ! store reciprocal of density element for atom J1
+            DUMMY=GRHO(J1)**PWR2 ! store reciprocal of density element for atom J1
+            DO J2=J1+1,NATOMS   ! inner loop over all J2>J1
+               
+               J13 = 3*(J1-1)
+               J23 = 3*(J2-1)
+               
+               DIST=DISTANCE_MATRIX(J1,J2) ! recall distance from earlier loop
+               DIST=DIST/R0ARRAY(J1,J2)
+!     ds656 >
+!     Should really check VTEMP, because I think the calculation can be made simpler and more efficient. 
+!     Can recycle terms from the potential calculation...
+!     < ds656
+               VTEMP=2.0D0*(PWR1*QARRAY(J1,J2)*(ZARRAY(J1,J2)**MBI)*(DUMMY+GRHO(J2)**PWR2)*DEXP(2.0D0 * QARRAY(J1,J2) *(1-DIST)) ! calculate gradient term
+     1              -AARRAY(J1,J2)*PARRAY(J1,J2)*DEXP(PARRAY(J1,J2)*(1-DIST)))/(R0ARRAY(J1,J2)**2*DIST) ! ARRAY2 vs ARRAY!!
+               ! was ARRAY2, but with MBI need ARRAY1 !
+               
+               DX=(X(J13+1)-X(J23+1)) ! calculate Cartesian components of distance
+               DY=(X(J13+2)-X(J23+2))
+               DZ=(X(J13+3)-X(J23+3))
+               
+               VTEMP1(J1)=VTEMP1(J1)+VTEMP*DX ! accumulate primary gradient components
+               VTEMP2(J1)=VTEMP2(J1)+VTEMP*DY
+               VTEMP3(J1)=VTEMP3(J1)+VTEMP*DZ
+
+               VTEMP1(J2)=VTEMP1(J2)-VTEMP*DX ! accumulate symmetric gradient components
+               VTEMP2(J2)=VTEMP2(J2)-VTEMP*DY
+               VTEMP3(J2)=VTEMP3(J2)-VTEMP*DZ
+            ENDDO
+         ENDDO
+         
+!     Finally, sum the gradient terms over all atoms
+         
+         DO J1=1,NATOMS
+            J13=3*(J1-1)
+            V(J13+1)=V(J13+1)+VTEMP1(J1)
+            V(J13+2)=V(J13+2)+VTEMP2(J1)
+            V(J13+3)=V(J13+3)+VTEMP3(J1)
+         ENDDO
+         
+      ENDIF
+      RETURN
+      END
+      
+      SUBROUTINE BGUPTA2 (X,VTMOD)
+
+!     Calculate what the energy of each atom would be if that particular
+!     atom was of different type.
+
+      USE commons
+      USE BGUPMOD
+
+      IMPLICIT NONE
+
+      DOUBLE PRECISION, INTENT(IN) :: X(3*NATOMS) ! coordinates
+      DOUBLE PRECISION, INTENT(OUT) :: VTMOD(NATOMS) ! potential
+      INTEGER J1, J2, J13, J23, MBI
+      DOUBLE PRECISION DIST, DIST1, DIST2, GRHO(NATOMS), DUMMY1, DUMMY2
+      DOUBLE PRECISION PWR1
+      
+C     Do some initialisations
+      GRHO(:)=0.0D0
+      VTMOD(1:NATOMS) = 0.0D0
+      MBI = 2 ! (2 for Gupta; 1 gives Morse-like pair potential)
+      PWR1 = 1.0D0/DBLE(MBI)
+      
+      DO J1=1,NATOMS-1          ! outer loop over all atoms except last
+         DO J2=J1+1,NATOMS      ! first inner loop over all J2>J1
+            
+            J13 = 3*(J1-1)
+            J23 = 3*(J2-1)
+            
+!     calc and store distance between atoms J1,J2
+            
+            DIST = DSQRT( ( X(J23+1)-X(J13+1) )**2 +
+     1           ( X(J23+2)-X(J13+2) )**2 + ( X(J23+3)-X(J13+3) )**2 )
+            
+            DIST1=DIST/R0ARRAY_MOD(J1,J2)
+            DIST2=DIST/R0ARRAY_MOD(J2,J1)
+            
+            DUMMY1 = AARRAY_MOD(J1,J2)*DEXP(PARRAY_MOD(J1,J2)*(1-DIST1))
+            DUMMY2 = AARRAY_MOD(J2,J1)*DEXP(PARRAY_MOD(J2,J1)*(1-DIST2))
+            VTMOD(J1) = VTMOD(J1) + 2.0D0*DUMMY1 
+            VTMOD(J2) = VTMOD(J2) + 2.0D0*DUMMY2
+            
+!     calculate many-body potential term
+            
+            DUMMY1 = DEXP(2.0D0*QARRAY_MOD(J1,J2)*(1-DIST1))*ZARRAY_MOD(J1,J2)**MBI
+            DUMMY2 = DEXP(2.0D0*QARRAY_MOD(J2,J1)*(1-DIST2))*ZARRAY_MOD(J2,J1)**MBI
+            GRHO(J1) = GRHO(J1) + 2.0D0*DUMMY1
+            GRHO(J2) = GRHO(J2) + 2.0D0*DUMMY2
+            
+         ENDDO                  ! END inner loop over all J2>J1
+      ENDDO                     ! END outer loop over all atoms except last
+      
+!     Now store the potential energy of each atom in array VTMOD
+      
+      DO J1=1,NATOMS
+         !GRHO(J1)=DSQRT(GRHO(J1)) ! square root density
+         VTMOD(J1) = VTMOD(J1) - GRHO(J1)**PWR1 ! accummulate per-atom energy
+      ENDDO
+      
+      RETURN
+      END      

@@ -1,0 +1,102 @@
+#!/bin/bash
+#$ -j y
+#$ -S /bin/bash
+#$ -m beas
+#$ -e error_file
+#$ -o output_file
+#$ -N qscore
+
+#  This is a script for calculating order parameters and 
+#  monitoring the lowest energy structures of GMIN runs.
+#  This script with also make most of the plots on the fly
+#  with xmgrace.
+
+rm q_w_v_total_e.agr q_w_v_total_e.plot
+rm  rms_v_total_e.agr rms_v_total_e.plot
+rm num_contacts_v_total_e.agr num_contacts_v_total_e.plot
+rm rg_v_total_e.agr rg_v_total_e.plot
+
+for  ((i=1; i<=1; i+=1))
+  do
+
+ if [ -d run.$i ]
+  then
+   echo "run.$i is  a directory"
+   cd run.$i
+
+   nummov=`head -1 movie | awk '{print$4}'`
+   pronam=`head -1 pro.list | awk '{print$1}'`
+   numres=`head -1 movie | awk '{print$1}'`
+
+   echo  "$pronam    " > targlistqscore
+   echo  'T        CA determines which atom is used for rg' >> targlistqscore
+   echo  'F        CB'  >>  targlistqscore
+   echo  'F        OX'  >> targlistqscore
+   echo  'F        calculate q(rama)' >> targlistqscore
+   echo  'F        calculate q relative to not native strucuture' >> targlistqscore
+   echo  'F        calculate very short in sequence qs' >> targlistqscore
+   echo  'F        calculate movieseq' >> targlistqscore
+   echo  '1        Num. Foldons'>> targlistqscore
+   echo  "1   $numres  foldstrt_min and foldstrt_max - residues to disorder" >> targlistqscore
+   ctemp=`cat input_amh | grep "constant value" | awk '{print $1}'`
+   ~/bin/qscore_lin.out
+
+      if [ -e GMIN_out ]
+       then
+         temptemp=`cat GMIN_out | grep "1 energy=" | awk '{print$5}'`
+         echo run.$i  $temptemp
+      else
+         echo "problems... No GMIN_out file"
+      exit
+      fi
+
+gracebat  /home/mp466/misc/xmgr/fofq/qscore_distance_class.agr -block qscore_w.plot -bxy 0:2 -block qscore_w.plot -bxy 0:3 -block qscore_w.plot -bxy 0:4 -block qscore_w.plot -bxy 0:5 -saveall qscore_w.agr -noprint
+
+gracebat  /home/mp466/misc/xmgr/fofq/qscore_distance_class.agr -block qscore_o.plot -bxy 0:2 -block qscore_o.plot -bxy 0:3 -block qscore_o.plot -bxy 0:4 -block qscore_o.plot -bxy 0:5 -saveall qscore_o.agr -noprint
+
+gracebat /home/mp466/misc/xmgr/fofq/amh_distance_class.agr -block amhsr.plot -bxy 1:3  -block amhmr.plot -bxy 1:3 -block amhlr.plot -bxy 1:3 -saveall amh_distance_class.agr -noprint
+
+      echo  "$pronam    " > rms_input
+      ~/bin/rms.out
+
+gracebat  /home/mp466/misc/xmgr/fofq/rms.agr -block rms.plot -bxy 0:2 -saveall rms.agr -noprint
+
+      echo "$numres          "  >  rg_input
+      echo 'T        CA      '  >> rg_input
+      echo 'F        CB      '  >> rg_input
+      echo 'F        OX      '  >> rg_input
+
+      echo  '1                '  >  targlist_rg
+      echo  "$pronam    "        >> targlist_rg
+
+      ~/bin/Rg.out > /dev/null
+
+gracebat /home/mp466/misc/xmgr/fofq/rg.agr -block rg.plot -bxy 0:3 -saveall rg.agr -noprint
+gracebat /home/mp466/misc/xmgr/fofq/num_contacts.agr -block num_contacts.plot -bxy 0:3 -saveall num_contacts.agr -noprint
+
+paste qscore_w.plot PE_no_bias.plot | sort -k2,2 | tail -1 >> ../best_q_w_v_total.plot
+paste qscore_w.plot PE_no_bias.plot >> ../q_w_v_total_e.plot
+paste rg.plot PE_no_bias.plot >> ../rg_v_total_e.plot
+paste num_contacts.plot PE_no_bias.plot >> ../num_contacts_v_total_e.plot
+paste rms.plot PE_no_bias.plot >> ../rms_v_total_e.plot
+
+     cd ..
+
+     else
+        echo "run.$i is not a directory"
+     fi
+
+    done
+
+      title="protname"
+      pronam=`head -1 run.1/pro.list | awk '{print$1}'`
+
+cat /home/mp466/misc/xmgr/fofq/q_w_v_total_e.agr  | sed "s/${title}/${pronam}/g" > q_w_v_total_e.agr
+cat /home/mp466/misc/xmgr/fofq/num_contacts_v_total_e.agr  | sed "s/${title}/${pronam}/g" > num_contacts_v_total_e.agr
+cat /home/mp466/misc/xmgr/fofq/rms_v_total_e.agr | sed "s/${title}/${pronam}/g" > rms_v_total_e.agr
+cat /home/mp466/misc/xmgr/fofq/rg_v_total_e.agr | sed "s/${title}/${pronam}/g" > rg_v_total_e.agr
+
+gracebat q_w_v_total_e.agr -block q_w_v_total_e.plot -bxy 2:8 -saveall q_w_v_total_e.agr -noprint
+gracebat rms_v_total_e.agr -block rms_v_total_e.plot  -bxy 2:5 -saveall rms_v_total_e.agr -noprint
+gracebat num_contacts_v_total_e.agr -block num_contacts_v_total_e.plot -bxy 4:3 -saveall num_contacts_v_total_e.agr -noprint
+gracebat rg_v_total_e.agr -block rg_v_total_e.plot -bxy 3:6 -saveall rg_v_total_e.agr -noprint

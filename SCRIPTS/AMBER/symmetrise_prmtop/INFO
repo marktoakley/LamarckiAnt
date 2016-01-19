@@ -1,0 +1,13 @@
+Scripts to symmetrise AMBER topology files for different forcefields by renumbering atoms in dihedral angles
+
+perm-prmtop.*.py scripts written by Edyta Malolepsza
+A9prmtoptermini.sh written by Chris Whittleston
+
+What you need: 
+- edit the top of the perm-prmtop.*.py files to point to a valid AMBER(9/10) installation with our modified forcefield files. If you have installed AMBER Tools from the repository as described on the wiki, you might just need to change csw34 to your user name.
+- put the perm-prmtop.*.py files into your $PATH somewhere
+- produce a topology file for your system (initial.prmtop) using LeaP and save a PDB in the process (initial.pdb)
+- run the A9prmtoptermini.sh as follows (if using the ff99SB forcefield):
+
+./A9prmtoptermini.sh initial.prmtop final.prmtop initial.pdb ff99SB 
+

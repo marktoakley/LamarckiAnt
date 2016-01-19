@@ -1,0 +1,15 @@
+Obsolescent: /scratch/khs26/svn/GMIN/source/dgetrf.f, line 684: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/dgetrf.f, line 753: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 1456: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 1527: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 1534: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 1855: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 2123: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 2300: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 2594: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 2918: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/input.f, line 423: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/input.f, line 434: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/input.f, line 435: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/input.f, line 436: computed GOTO statement
+Obsolescent: /scratch/khs26/svn/GMIN/source/input.f, line 437: computed GOTO statement

@@ -1,0 +1,7 @@
+Serial AMBGMIN 
+--------------
+
+Required files: 
+atomgroups coords.inpcrd coords.prmtop data min.in perm.allow README run.sh
+
+

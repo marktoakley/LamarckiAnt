@@ -1,0 +1,8 @@
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_dispersion_params.f, line 207: Pointer R0VDW never dereferenced detected at DISPERSION_PARAMS@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_dispersion_egr.f, line 135: Pointer R0 never dereferenced detected at DISPERSION_EGR@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_dispersion_egr.f, line 135: Pointer B never dereferenced detected at DISPERSION_EGR@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_eglcao.f, line 742: Pointer DIPOL never dereferenced detected at EGLCAO@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_eglcao.f, line 742: Pointer QMULLI never dereferenced detected at EGLCAO@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_eglcao.f, line 742: Pointer DERIVZ never dereferenced detected at EGLCAO@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_eglcao.f, line 742: Pointer DERIVY never dereferenced detected at EGLCAO@<end-of-statement>
+Warning: /scratch/khs26/svn/AMBER/src/sander/qm2_dftb_eglcao.f, line 742: Pointer DERIVX never dereferenced detected at EGLCAO@<end-of-statement>

@@ -1,0 +1,357 @@
+#!/bin/bash
+
+# preliminary part {{{
+
+export shd="`dirname $(readlink -f $0)`"
+export wg_dir="$shd/../../"
+source $shd/sh_header.sh
+
+exts=( f F f90 )
+#vim_opts="-n -p -S '$shd/f.vim'" 
+vim_opts="-n -p" 
+kwd_dir="$wg_dir/keywords"
+d="$wg_dir/GMIN/source"
+p_arg="g"
+export the_makefile="Makefile.gmin"
+#view_files="a"
+let invoke_vim=1
+let add_files=0
+
+# }}}
+
+fill_files(){
+#{{{
+for f in ${base_files[@]}; do
+		files[$i]=$d/$f
+		i=$(($i+1))
+done
+#}}}
+}
+
+set_base_vars(){
+# {{{
+script_purpose="view source files with vim"
+script_project="Wales group svn repository"
+# }}}
+}
+
+set_base_vars
+
+v_main(){
+
+		case "$p" in
+			GMIN) #{{{ 
+						#base_files=( Makefile main.F \
+				base_files=( main.F mc.F bspt.F \
+	modcharmm.f90 modamber9.f90 potential.f svn_revision.sh display_version.sh keyword.f \ 
+	read_cmd_args.f90 )
+				base_files=( ${base_files[@]} commons.f90 modf1com.f90 countatoms.f90 modperm.f90 qmod.f90 modamb.f90 modmxatms.f90 porfuncs.f90 )
+							;;
+							# }}}
+			OPTIM) # {{{	
+				base_files=( Makefile build.csh OPTIM.F symmetry.f path.f mylbfgs.f  \
+				make_optimheader.sh key.f90 potential.f commons.f90 \
+				getparams.f read_cmd_args.f90 keywords.f minpermdist.f90 symmetry.f ) ;;
+				# }}}
+			PATHSAMPLE) # {{{ 
+				base_files=( Makefile main.f minpermdist.f90 read_cmd_args.f90 \
+		      				porfuncs.csh \ 
+						) 
+				
+				fill_files 
+				;;
+				# }}}
+		DISCONNECT) base_files=( Makefile manipulate.f90  \
+						disconnectionDPS.f90 \ 
+				) ;;
+		esac
+
+}
+
+fill_mk_INCLUDE(){
+# {{{
+d="$wg_dir/INCLUDE/"
+let ibf=0
+#for f in `ls $d/$the_makefile.* | sed 's/~$//'`
+prgs=( gmin pathsample ) 
+for prg in ${prgs[@]}; do
+	for f in `ls $d/Makefile.$prg.* | sed 's/~$//' | sed '/base$/d'` ; do
+		base_files[$ibf]=`basename $f`
+		ibf=$(($ibf+1))
+done ; done
+
+fill_files
+base_files=( Makefile.dv )
+fill_files
+# }}}
+}
+
+if [ -z "$*" ]; then # display help message {{{ 
+cat << EOF
+========================================
+SCRIPT NAME: $this_script
+PURPOSE: $script_purpose
+PROJECT: $script_project
+USAGE: $this_script [ OPTIONS ]
+	If no command-line options are specified, display this help message
+OPTIONS:
+	=================
+	0) Basic options
+	=================
+		(zero string)	display this help message
+	-g	use gvim
+	m	view m(yself), i.e., view this script
+	
+	=================
+	1) Which programs/type of files to view?...
+	=================
+	1.0 Program(s):
+	===============
+
+	g 	GMIN
+        o 	OPTIM
+	ps 	PATHSAMPLE	
+	ds 	DISCONNECT
+	
+	1.1 Types of files:
+	===============
+
+	b*	build scripts/makefiles
+      	dc	documentation
+
+		dco
+
+	=================
+	2) For a given program, which subset of files to view?...
+	=================
+
+	a		all files
+	f STRING	view files only with names containing STRING
+	main		
+	bln		related to the BLN model	
+	chi		CHARMM interface files 
+
+	============
+	2.1 Keywords
+	============
+
+	kw STRING	keyword source files containing substring STRING.
+			If STRING='', i.e. zero, it means ALL keyword files.
+
+	kwa STRING - 	view keywords which start with STRING
+	kwo		view (special!) files:
+					 _begin _init _read _end 
+	=================
+	3) Examples of usage
+	=================
+	vf g a		- view all files in GMIN/source directory
+	vf o bln	- view files related to BLN model in OPTIM/source
+				directory
+	vf g f ke	- view all files in GMIN/source directory
+				containing substring 'ke'. Opens a couple of 
+				files: keyword.f etc.
+========================================
+EOF
+# }}}
+	else # main part {{{
+		let i=0
+		while [ ! -z "$1" ] 
+			do
+			  case "$1" in # process commandline arguments {{{
+				 "g" | "o" | "ps" | "ds") # {{{
+				 	p_arg="$1"
+					case "$1" in
+						"g") p="GMIN" ;;
+						"o") p="OPTIM";;
+						"ps") p="PATHSAMPLE";;
+						"ds") p="DISCONNECT";;
+					esac
+					add_files=0
+			  		d="$wg_dir/$p/source/"
+				;;
+				# }}}
+			qu | u | mk | dv | bb | porfuncs | "com" | cf | M  | tem | "a" | dc | kw* | "chi" | "f" | "bln" | "b" | "b0" |  "bu"  | "m" | "main") 
+					view_files="$1" ; add_files=1 ;;
+				"-f") view_files="$2";; 
+				"-g") vim_opts="-g $vim_opts" ;;
+				*) view_files="no" ;;
+			  esac	# }}}
+			
+			  if [ $add_files -eq 1 ]; then 
+  			    case "$view_files" in # add files to view {{{
+			    	"a") # view all files {{{
+					let ibf=0
+			 	 	for ext in ${exts[@]}; do
+						for f in ` ls $d/*.$ext ` ; do
+			 		  		 base_files[$ibf]=`basename $f`
+			  		   		 ibf=$(($ibf+1))
+	      				done; done
+				# }}}
+				;;
+		"com") base_files=( commit.txt ) ; d=$shd ;;
+				"main" | M) v_main ;;
+		qu) base_files=( qu.txt ); d=$shd ;;
+		u) d=$shd/$1; base_files=( ` cd $d; ls *.c  ` ) ;;
+		porfuncs) # {{{ 
+			f1=GMIN/source/$1.csh
+			f2=PATHSAMPLE/source/$1.csh
+			d=$wg_dir
+			df=porf.diff
+			cd $d
+			diff $f1 $f2 > $df
+			base_files=( $f1 $f2 $df ) 
+		;;
+		# }}}
+		cf) base_files=( cf ) ; d=$shd ;;
+		dv) base_files=( display_version.sh ); d=$wg_dir/SCRIPTS/all/ ;;
+			 	"m") # view m(yself), ie, this script {{{
+					base_files=( $me "$me"_*.sh sh_header.sh f.sh )  
+					d="$shd"
+			        ;;
+				#}}}	
+			 	"bln") # related to the BLN model {{{
+					base_files=( BLN.f p46merdiff.f g46merdiff.f ) 
+					;;
+				# }}}
+				"f") # open only those file(s), which have a matching string {{{
+					let ibf=0
+					for ext in ${exts[@]}; do
+						for f in `ls $d/*$2*.$ext` ; do
+							base_files[$ibf]=`basename $f`
+							ibf=$(($ibf+1))
+					      	done 
+						       #continue	
+				        done
+				;;
+			 	# }}}
+				"chi") # CHARMM interface {{{
+					case "$p" in
+					  	GMIN)
+							base_files=( Makefile \
+								pref.dat prefx.msg \
+				 				FOR021.DAT )
+							d="$d/CHARMMinterface"
+						;;
+						OPTIM)
+							base_files=( Makefile )
+							d="$d/CHARMM"
+						;;
+					esac
+					use fill_files
+					lext=( src f ) 
+					let ibf=0
+					for ext in ${lext[@]}; do
+					  for f in  `ls $d/*.$ext`; do
+						base_files[$ibf]=`basename $f`
+						ibf=$(($ibf+1))
+				        done; done
+					#vim_opts=+"set ft=fortran"
+				;;
+				# }}}
+				"b0") # just bu + Makefile.base {{{
+				base_files=( GMIN/source/Makefile SCRIPTS/op/bu BUILDS/0/GMIN/source/Makefile )
+				d=$wg_dir
+			        ;;
+			        #}}}
+				"bb") # GMIN OPTIM PATHSAMPLE makefiles {{{
+				d=$wg_dir
+				base_files=( GMIN/source/Makefile \
+					GMIN/source/CHARMMinterface/Makefile \
+					GMIN/source/CHARMMinterface/mchi \
+					GMIN/source/m \
+					GMIN/source/m.out \
+					PATHSAMPLE/source/Makefile \
+					OPTIM/source/Makefile  \
+					OPTIM/source/build.csh \
+					DISCONNECT/source/Makefile \
+				 	INCLUDE/mkf \
+					../git.mk )
+				;;
+			        # }}}
+				mk) # Makefile components in INCLUDE/ subdirectory + core Makefiles {{{ 
+				fill_mk_INCLUDE
+				d=$wg_dir
+				base_files=( \
+					GMIN/source/Makefile \
+					PATHSAMPLE/source/Makefile )
+
+					;;
+					# }}}
+			 	"b") # makefiles/build scripts {{{
+					fill_mk_INCLUDE
+					
+					#base_files=( GMIN/source/Makefile \
+					base_files=( \
+						CHARMM31/install.com \
+						CHARMM31/compile.csh \
+						CHARMM31/clean.csh \
+						GMIN/source/Makefile \
+						GMIN/source/CHARMMinterface/Makefile \
+						SCRIPTS/all//svn_revision.sh \
+						SCRIPTS/all/display_version.sh \
+						INCLUDE/mkf \
+						SCRIPTS/op/makemake \	
+						OPTIM/source/build.csh \
+						OPTIM/source/version.sh \
+						PATHSAMPLE/source/Makefile \
+						DISCONNECT/source/Makefile \
+						DOC/makefile \
+						)
+					d="$wg_dir"
+					use fill_files
+					d="$shd"; 
+					#base_files=( bu doxygen.sh Doxyfile.full ) 
+					base_files=( bu doxygen.sh ) 
+				;;
+				# }}}
+				"bu") # bu script {{{
+					base_files=( bu bu_*.sh decom sh_header.sh f.sh )
+				        d="$shd"
+					use fill_files
+					d="$wg_dir/GMIN/source"
+					base_files=( Makefile mk ) 
+					;;
+				# }}}
+				tem) # templates {{{	
+				d=$shd/templates/
+			        cd $d; base_files=( ` ls *.sh ` ) 
+				;;
+			      #}}}
+				# keywords {{{
+				kw)  d="$kwd_dir" ; cd $d ; base_files=` ls *.$p_arg.f | awk "/$2/" ` ;;
+				kwa)  d="$kwd_dir" ; cd $d ; base_files=` ls *.$p_arg.f | awk "/^$2/" ` ;;
+				kwm)  d="$kwd_dir" ; cd $d ; base_files=$2.$p_arg.f ;;
+				kwo)  d="$kwd_dir" ; cd $d ; 
+					kw_tags=( begin init read end ) 
+					let ibf=0
+					for f in ${kw_tags[@]} ; do
+						base_files[$ibf]=_$f.$p_arg.f 
+						let ibf=$(($ibf+1))
+				  	done	  
+					;;
+		          #}}}
+				dc) 	base_files=( GMIN.tex OPTIM.tex PATHSAMPLE.tex )
+					d=$wg_dir/DOC 
+		       		;;
+				dca)  d="$kwd_dir" ; cd $d ; base_files=` ls *.$p_arg.tex | awk "/^$2/" ` ;;
+				dcm)  d="$kwd_dir" ; cd $d ; base_files=$2.$p_arg.tex ;;
+				dco)  
+					d="$kwd_dir" ; cd $d ; 
+					tex_tags=( preamble frontpage intro systems examples end ) 
+					let ibf=0
+					for f in ${tex_tags[@]} ; do
+						base_files[$ibf]=_$f.$p_arg.tex
+						let ibf=$(($ibf+1))
+				  	done	  
+					;;
+			  esac # }}} 
+			  fill_files
+			  fi
+			  shift
+		done
+
+		if [ $invoke_vim -eq 1 ]; then 
+			vim $vim_opts "${files[@]}"
+	        fi
+fi # }}}
+

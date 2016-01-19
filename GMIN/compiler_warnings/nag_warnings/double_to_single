@@ -1,0 +1,14 @@
+Questionable: /scratch/khs26/svn/GMIN/source/qorderparam_lj.f90, line 98: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/GMIN/source/qorderparam_blj.f90, line 103: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norml.f, line 50: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norml.f, line 58: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norml.f, line 60: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norml.f, line 72: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norm.f, line 43: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norm.f, line 73: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norm.f, line 75: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norm.f, line 104: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norm.f, line 106: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/norm.f, line 120: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/makel.f, line 40: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result
+Questionable: /scratch/khs26/svn/AMBER/src/sander/makel.f, line 64: Intrinsic function CMPLX with double precision argument and no KIND= argument returns single precision result

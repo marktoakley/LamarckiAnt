@@ -1,0 +1,224 @@
+#!/bin/bash
+#
+#   Portability functions module generator
+#   Copyright (C) 2003-2005 Semen A. Trygubenko and David J. Wales
+#   This file is part of PATHSAMPLE.
+#
+#   OPTIM is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   OPTIM is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+if test "x$1" == "x"; then :
+  FC="pgi"
+else
+  FC=$1
+  if test "x${FC}" != "xnag" -a "x${FC}" != "xifort" -a "x${FC}" != "xpgi" -a "x${FC}" != "xifc" -a "x${FC}" != "xg95" -a "x${FC}" != "xgfortran" -a "x${FC}" != "xpathscale"; then :
+    echo "Unknown compiler!"
+    exit 1
+  fi
+fi
+
+echo "MODULE PORFUNCS"
+
+#if test "x${FC}" == "xnag"; then :
+#  echo "     use f90_unix, only: getarg"
+#  echo "     use f90_unix_proc, only: system, exit"
+#fi
+
+echo "     implicit none"
+
+# C bindings for system functions
+echo " "
+echo "     interface"
+echo "       function c_fork() bind(C, name=\"fork\")"
+echo "         use iso_c_binding, only: c_int"
+echo "         integer(c_int) :: c_fork"
+echo "       end function c_fork"
+echo " "
+echo "       function c_wait(ExitStatus) bind(C, name=\"wait\")"
+echo "         use iso_c_binding, only: c_int"
+echo "         integer(c_int) :: c_wait"
+echo "         integer(c_int), intent(out) :: ExitStatus"
+echo "       end function c_wait"
+echo " "
+echo "       function c_system(JobString) bind(C, name=\"system\")"
+echo "         use iso_c_binding, only: c_int, c_char"
+echo "         integer(c_int) :: c_system"
+echo "         character(kind=c_char) :: JobString(*)"
+echo "       end function c_system"
+echo " "
+echo "       function c_getpid() bind(C, name=\"getpid\")"
+echo "         use iso_c_binding, only: c_int"
+echo "         integer(c_int) :: c_getpid"
+echo "       end function c_getpid"
+echo " "
+echo "       subroutine c_exit(ExitStatus) bind(C, name=\"exit\")"
+echo "         use iso_c_binding, only: c_int"
+echo "         integer(c_int), value :: ExitStatus" 
+echo "       end subroutine c_exit"
+echo "     end interface"
+echo " "
+
+echo "     contains"
+# FLUSH
+#if test "x${FC}" == "xnag"; then :
+#  echo "          subroutine flush(UNIT,ISTAT) ! flushes the output buffer of logical unit UNIT which must be"
+#  echo "          use f90_unix, NAGflush => flush ! connected for formatted sequential output; ISTAT is ignored"
+#  echo "               implicit none"
+#  echo "               integer,intent(in) :: UNIT"
+#  echo "               integer,intent(out),optional :: ISTAT"
+#  echo "               call NAGflush(UNIT)"
+#  echo "          end subroutine flush"
+#  echo " "
+#elif test "x${FC}" == "xg95"; then :
+  echo "          subroutine flush(UNIT, ISTAT) ! flushes the output buffer of logical unit UNIT which must be"
+  echo "               implicit none ! connected for formatted sequential output; ISTAT is ignored"
+  echo "               integer,intent(in) :: UNIT"
+  echo "               integer,intent(out),optional :: ISTAT"
+  echo " "
+  echo "               flush(UNIT)"
+  echo "          end subroutine flush"
+  echo " "
+#elif test "x${FC}" == "xgfortran"; then :
+#  echo "          subroutine flush(UNIT,ISTAT) ! flushes the output buffer of logical unit UNIT which must be"
+#  echo "               implicit none ! connected for formatted sequential output; ISTAT is ignored"
+#  echo "               integer,intent(in) :: UNIT"
+#  echo "               integer,intent(out),optional :: ISTAT"
+#  echo "!              call flush(UNIT)"
+#  echo "          end subroutine flush"
+#  echo " "
+#fi
+
+# IARGC
+echo "          subroutine iargc_subr(n) ! wraps iargc function so it can be use-associated"
+
+#if test "x${FC}" == "xnag"; then :
+#  echo "               use f90_unix, only: iargc"
+#fi
+
+echo "               implicit none"
+echo "               integer,intent(out) :: n"
+echo " "
+
+#if test "x${FC}" != "xnag"; then :
+#  echo "               integer iargc"
+#  echo " "
+#fi 
+
+echo "               n = command_argument_count()"
+echo "          end subroutine iargc_subr"
+echo " "
+
+# GETARG
+echo "          subroutine getarg_subr(position,value) ! wraps getarg function so it can be use-associated"
+echo "               implicit none"
+echo " "
+echo "               integer,intent(in) :: position"
+echo "               character(len=*),intent(out) :: value"
+echo "               integer :: status"
+echo " "
+echo "               call get_command_argument(number=position,value=value,status=status)"
+echo "               if (status .eq. -1) print *, 'GETARG> warning: command line argument truncated'"
+echo "               if (status .gt. 0)  print *, 'GETARG> warning: failed to read command line argument'" 
+echo "          end subroutine getarg_subr"
+echo " "
+
+# FORK
+echo "          subroutine fork_subr(pid)" ! returns zero in the child process, PID of child in parent process
+echo "               implicit none"
+echo "               integer, intent(inout) :: pid"
+echo " "
+echo "               pid=c_fork()"
+#echo "               PRINT *, 'FORK> pid = ', pid"
+echo "          end subroutine fork_subr"
+echo " "
+
+# SYSTEM
+echo "          subroutine system_subr(JobString,ExitStatus)"
+#if test "x${FC}" == "xnag"; then :
+#  echo "               use f90_unix_proc, only: system"
+#fi
+echo "               use iso_c_binding, only: c_null_char"
+echo "               implicit none"
+echo " "
+echo "               character(len=*),intent(in)  :: JobString"
+echo "               integer,intent(out),optional :: ExitStatus"
+echo "               integer                      :: TempStatus"
+echo " "
+#if test "x${FC}" == "xifort"; then :
+#  echo "               integer shiftr,system"
+#  echo " "
+#  echo "               ExitStatus=system(JobString)"
+#  echo "               ExitStatus=shiftr(ExitStatus,-8)"
+#elif test "x${FC}" == "xpgi"; then :
+#  echo "               integer system"
+#  echo " "
+#     echo "               ExitStatus=system(JobString)"
+#     echo "               ExitStatus=ishft(ExitStatus,-8)"
+#elif test "x${FC}" == "xgfortran"; then :
+#  echo "               integer system"
+#  echo " "
+#     echo "               ExitStatus=system(JobString)"
+#     echo "               ExitStatus=ishft(ExitStatus,-8)"
+#elif test "x${FC}" == "xnag"; then :
+#  echo "               call system(JobString,ExitStatus)"
+#  echo "               ExitStatus=ishft(ExitStatus,-8)"
+#elif test "x${FC}" == "xpathscale"; then :
+#  echo "               integer system"
+#  echo "               ExitStatus=system(JobString)"
+#fi
+echo "               TempStatus=c_system(JobString//c_null_char)"
+echo "               if(present(ExitStatus)) ExitStatus = TempStatus"
+#echo "               ExitStatus=shiftr(ExitStatus,-8)"
+#echo "               PRINT *, 'SYSTEM> ExitStatus = ', ExitStatus"
+echo "          end subroutine system_subr"
+echo " "
+
+# WAIT
+echo "          subroutine wait_subr(pid,ExitStatus)"
+echo "               implicit none"
+echo "               integer,intent(out) :: pid,ExitStatus"
+echo " "
+echo "               pid=c_wait(ExitStatus)"
+#echo "               ExitStatus=ishft(ExitStatus,-8)"
+#echo "               PRINT *, 'WAIT> pid = ', pid"
+#echo "               PRINT *, 'WAIT> ExitStatus = ', ExitStatus"
+echo "          end subroutine wait_subr"
+echo " "
+
+# GETPID
+echo "          subroutine getpid_subr(pid)"
+#if test "x${FC}" == "xnag"; then :
+#  echo "               use f90_unix, only: getpid"
+#fi
+echo "               implicit none"
+echo " "
+echo "               integer,intent(out) :: pid"
+echo " "
+#if test "x${FC}" == "xifort" -o "x${FC}" == "xpgi" -o "x${FC}" == "xifc" -o "x${FC}" == "xpathscale"; then :
+#  echo "               integer getpid"
+#  echo " "
+#fi
+echo "               pid=c_getpid()"
+#echo "               PRINT *, 'GETPID> pid = ', pid"
+echo "          end subroutine getpid_subr"
+
+# EXIT
+echo "          subroutine exit_subr(ExitStatus)"
+echo "               implicit none"
+echo " "
+echo "               integer,intent(in) :: ExitStatus"
+echo "               call c_exit(ExitStatus)"
+echo "          end subroutine exit_subr"
+echo "END MODULE PORFUNCS"

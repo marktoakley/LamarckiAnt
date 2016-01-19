@@ -1,0 +1,414 @@
+      SUBROUTINE NEWPAH (X, G, ENERGY, GTEST)
+
+      USE COMMONS, ONLY: NATOMS, NRBSITES, PAHID, SITE, NCARBON 
+
+      IMPLICIT NONE
+
+      INTEGER          :: I, J, J1, J2, J3, J4, J5, J6, J7, J8, REALNATOMS, OFFSET 
+      DOUBLE PRECISION :: X(3*NATOMS), G(3*NATOMS), CHARGE(NRBSITES)
+      DOUBLE PRECISION :: RISITE(3), RJSITE(3), RI(3), RJ(3), DR(3), RIJSS(3), PI(3)
+      DOUBLE PRECISION :: DSS2, R2, R6, ABSR, DVDR, ENERGY, EXPFCT
+      DOUBLE PRECISION :: R(NRBSITES*NATOMS/2,3)
+      DOUBLE PRECISION :: DR1(NRBSITES*NATOMS/2,3), DR2(NRBSITES*NATOMS/2,3), DR3(NRBSITES*NATOMS/2,3) 
+      DOUBLE PRECISION :: RMI(3,3), DRMI1(3,3), DRMI2(3,3), DRMI3(3,3)
+      DOUBLE PRECISION :: CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ
+      LOGICAL          :: GTEST
+
+!     Williams' potential; 1980 
+
+      REALNATOMS = NATOMS/2
+      OFFSET     = 3*REALNATOMS
+
+      IF (PAHID == 1) THEN
+         CALL DEFCORONN(CHARGE, CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ)
+         NCARBON = 24
+      ELSEIF (PAHID == 2) THEN
+          CALL DEFPYRN(CHARGE, CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ)
+          NCARBON = 16
+      ELSEIF (PAHID == 3) THEN
+          CALL DEFBNZN(CHARGE, CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ)
+          NCARBON = 6
+      ENDIF
+ 
+      ENERGY = 0.D0
+      IF (GTEST) G(:) = 0.D0
+
+      DO J1 = 1, REALNATOMS
+
+         J3 = 3*J1
+         J5 = OFFSET + J3
+         RI = X(J3-2:J3)
+         PI = X(J5-2:J5)
+
+         CALL RMDRVT(PI, RMI, DRMI1, DRMI2, DRMI3, GTEST)
+
+         DO J2 = 1, NRBSITES
+
+            J4        = NRBSITES*(J1-1) + J2
+            R(J4,:)   = RI(:) + MATMUL(RMI,SITE(J2,:))
+            IF (GTEST) THEN
+               DR1(J4,:) = MATMUL(DRMI1,SITE(J2,:))
+               DR2(J4,:) = MATMUL(DRMI2,SITE(J2,:))
+               DR3(J4,:) = MATMUL(DRMI3,SITE(J2,:))
+            ENDIF
+
+         ENDDO
+
+      ENDDO
+
+      DO J1 = 1, REALNATOMS - 1 
+
+         J3 = 3*J1
+         J5 = OFFSET + J3
+
+         DO J2 = J1 + 1, REALNATOMS
+
+            J4 = 3*J2
+            J6 = OFFSET + J4
+
+!     SUM OVER SITES
+
+            DO I = 1, NRBSITES
+
+               J7 = NRBSITES*(J1-1) + I
+
+               DO J = 1, NRBSITES
+
+                  J8       = NRBSITES*(J2-1) + J
+                  RIJSS(:) = R(J7,:) - R(J8,:)
+                  DSS2     = DOT_PRODUCT(RIJSS,RIJSS)
+                  R2       = 1.D0/DSS2
+                  R6       = R2*R2*R2
+                  ABSR     = SQRT(DSS2)
+
+                  IF (I <= NCARBON .AND. J <= NCARBON) THEN
+                     EXPFCT = EXP(-CWECC*ABSR)
+                     ENERGY = ENERGY + CWRCC*EXPFCT - CWACC*R6
+                  ELSEIF (I > NCARBON .AND. J > NCARBON) THEN
+                     EXPFCT = EXP(-CWEHH*ABSR)
+                     ENERGY = ENERGY + CWRHH*EXPFCT - CWAHH*R6
+                  ELSE
+                     EXPFCT = EXP(-CWECH*ABSR)
+                     ENERGY = ENERGY + CWRCH*EXPFCT - CWACH*R6
+                  ENDIF
+
+                  ENERGY   = ENERGY + CCKJ*CHARGE(I)*CHARGE(J)/ABSR
+                  
+                  IF (GTEST) THEN
+!     DVDR = DVDR/R
+                     IF (I <= NCARBON .AND. J <= NCARBON) THEN
+                        DVDR   = - CWRCC*CWECC*EXPFCT/ABSR + 6.D0*CWACC*R6*R2
+                     ELSEIF (I > NCARBON .AND. J > NCARBON) THEN
+                        DVDR   = - CWRHH*CWEHH*EXPFCT/ABSR + 6.D0*CWAHH*R6*R2
+                     ELSE
+                        DVDR   = - CWRCH*CWECH*EXPFCT/ABSR + 6.D0*CWACH*R6*R2
+                     ENDIF
+
+                     DVDR       = DVDR - CCKJ*CHARGE(I)*CHARGE(J)*R2/ABSR
+                     G(J3-2:J3) = G(J3-2:J3) + DVDR*RIJSS(:)
+                     G(J4-2:J4) = G(J4-2:J4) - DVDR*RIJSS(:)
+
+                     G(J5-2) = G(J5-2) + DVDR*DOT_PRODUCT(RIJSS,DR1(J7,:))
+                     G(J5-1) = G(J5-1) + DVDR*DOT_PRODUCT(RIJSS,DR2(J7,:))
+                     G(J5)   = G(J5)   + DVDR*DOT_PRODUCT(RIJSS,DR3(J7,:))
+
+                     G(J6-2) = G(J6-2) - DVDR*DOT_PRODUCT(RIJSS,DR1(J8,:))
+                     G(J6-1) = G(J6-1) - DVDR*DOT_PRODUCT(RIJSS,DR2(J8,:))
+                     G(J6)   = G(J6)   - DVDR*DOT_PRODUCT(RIJSS,DR3(J8,:))
+
+                  ENDIF
+
+               ENDDO
+
+            ENDDO
+
+         ENDDO
+
+      ENDDO
+
+      END SUBROUTINE NEWPAH 
+
+!     ----------------------------------------------------------------------------------------------
+
+      SUBROUTINE DEFBNZN(CHARGE,CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ)
+
+      USE COMMONS, ONLY: NRBSITES, SITE
+
+      IMPLICIT NONE
+
+      DOUBLE PRECISION :: CHARGE(NRBSITES), CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ
+
+!     C6H6
+
+      SITE( 1,:) = (/ 1.397000000000000,  0.000000000000000,  0.000000000000000/)
+      SITE( 2,:) = (/ 0.698500000000000,  1.209837489086861,  0.000000000000000/)
+      SITE( 3,:) = (/-0.698500000000000,  1.209837489086861,  0.000000000000000/)
+      SITE( 4,:) = (/-1.397000000000000,  0.000000000000000,  0.000000000000000/)
+      SITE( 5,:) = (/-0.698500000000000, -1.209837489086861,  0.000000000000000/)
+      SITE( 6,:) = (/ 0.698500000000000, -1.209837489086861,  0.000000000000000/)
+      SITE( 7,:) = (/ 2.424000000000000,  0.000000000000000,  0.000000000000000/)
+      SITE( 8,:) = (/ 1.212000000000000,  2.099245578773480,  0.000000000000000/)
+      SITE( 9,:) = (/-1.212000000000000,  2.099245578773480,  0.000000000000000/)
+      SITE(10,:) = (/-2.424000000000000,  0.000000000000000,  0.000000000000000/)
+      SITE(11,:) = (/-1.212000000000000, -2.099245578773480,  0.000000000000000/)
+      SITE(12,:) = (/ 1.212000000000000, -2.099245578773480,  0.000000000000000/)
+
+      CWRCC  = 367250.D0 ! LJ coefficients in kJ/mol Angstrom**6 or Angstrom**12
+      CWRHH  = 11677.D0
+      CWRCH  = 65485.D0  !SQRT(CWRCC*CWRHH)
+      CWACC  = 2414.0D0
+      CWAHH  = 136.0D0
+      CWACH  = 573.D0    !SQRT(CWACC*CWAHH)
+      CWECC  = 3.60D0
+      CWEHH  = 3.74D0
+      CWECH  = 3.67D0    !0.5D0*(CWECC + CWEHH)
+      CCKJ   = 1389.354848D0
+
+      CHARGE(1:6)  =-0.153D0
+      CHARGE(7:12) = 0.153D0
+
+      END SUBROUTINE DEFBNZN
+
+!     ----------------------------------------------------------------------------------------------
+
+      SUBROUTINE DEFCORONN(CHARGE,CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ)
+    
+      USE COMMONS, ONLY: NRBSITES, SITE  
+      
+      IMPLICIT NONE
+
+      INTEGER :: J1
+      DOUBLE PRECISION :: CHARGE(NRBSITES), CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ
+
+      DO J1 = 1, NRBSITES
+         SITE(J1,3) = 0.0D0
+      ENDDO
+
+      SITE(1,1)  = 1.420001D0
+      SITE(1,2)  = 0.000000D0
+      CHARGE(1)  = 0.00035D0
+      SITE(2,1)  = 0.71D0
+      SITE(2,2)  = 1.229755D0
+      CHARGE(2)  = 0.000350
+      SITE(3,1)  =-0.71D0
+      SITE(3,2)  = 1.229755D0
+      CHARGE(3)  = 0.00035D0
+      SITE(4,1)  =-1.420001D0
+      SITE(4,2)  = 0.D0
+      CHARGE(4)  = 0.000350
+      SITE(5,1)  =-0.71D0
+      SITE(5,2)  =-1.229755D0
+      CHARGE(5)  = 0.00035D0
+      SITE(6,1)  = 0.71D0
+      SITE(6,2)  =-1.229755D0
+      CHARGE(6)  = 0.00035D0
+      SITE(7,1)  = 2.838001D0
+      SITE(7,2)  = 0.D0
+      CHARGE(7)  = 0.07994D0
+      SITE(8,1)  = 1.419001D0
+      SITE(8,2)  = 2.457779D0
+      CHARGE(8)  = 0.07994D0
+      SITE(9,1)  =-1.419001D0
+      SITE(9,2)  = 2.457779D0
+      CHARGE(9)  = 0.07994D0
+      SITE(10,1) =-2.838001D0
+      SITE(10,2) = 0.D0
+      CHARGE(10) = 0.07994D0
+      SITE(11,1) =-1.419001D0
+      SITE(11,2) =-2.457779D0
+      CHARGE(11) = 0.07994D0
+      SITE(12,1) = 1.419001D0
+      SITE(12,2) =-2.457779D0
+      CHARGE(12) = 0.07994D0
+      SITE(13,1) = 3.523366D0
+      SITE(13,2) = 1.248219D0
+      CHARGE(13) =-0.169716
+      SITE(14,1) = 2.842673D0
+      SITE(14,2) = 2.427211D0
+      CHARGE(14) =-0.169716D0
+      SITE(15,1) = 0.680706D0 
+      SITE(15,2) = 3.67543D0
+      CHARGE(15) =-0.169716D0
+      SITE(16,1) =-0.680677D0
+      SITE(16,2) = 3.675437D0
+      CHARGE(16) =-0.169716D0
+      SITE(17,1) =-2.842673D0
+      SITE(17,2) = 2.427211D0
+      CHARGE(17) =-0.169716D0
+      SITE(18,1) =-3.523366D0
+      SITE(18,2) = 1.248219D0
+      CHARGE(18) =-0.169716D0
+      SITE(19,1) =-3.523366D0
+      SITE(19,2) =-1.248219D0
+      CHARGE(19) =-0.169716D0
+      SITE(20,1) =-2.842673D0
+      SITE(20,2) =-2.427211D0
+      CHARGE(20) =-0.169716D0
+      SITE(21,1) =-0.680677D0
+      SITE(21,2) =-3.675437D0
+      CHARGE(21) =-0.169716D0
+      SITE(22,1) = 0.680706D0
+      SITE(22,2) =-3.67543D0
+      CHARGE(22) =-0.169716D0
+      SITE(23,1) = 2.842673D0
+      SITE(23,2) =-2.427211D0
+      CHARGE(23) =-0.169716D0
+      SITE(24,1) = 3.523366D0
+      SITE(24,2) =-1.248219D0
+      CHARGE(24) =-0.169716D0
+      SITE(25,1) = 4.602048D0
+      SITE(25,2) = 1.274393D0
+      CHARGE(25) = 0.129571D0
+      SITE(26,1) = 3.404682D0
+      SITE(26,2) = 3.348290D0
+      CHARGE(26) = 0.129571D0
+      SITE(27,1) = 1.197383D0
+      SITE(27,2) = 4.622681D0
+      CHARGE(27) = 0.129571D0
+      SITE(28,1) =-1.197347D0
+      SITE(28,2) = 4.622693D0
+      CHARGE(28) = 0.129571D0
+      SITE(29,1) =-3.404682D0
+      SITE(29,2) = 3.348290D0
+      CHARGE(29) = 0.129571D0
+      SITE(30,1) =-4.602048D0
+      SITE(30,2) = 1.274393D0
+      CHARGE(30) = 0.129571D0
+      SITE(31,1) =-4.602048D0
+      SITE(31,2) =-1.274393D0
+      CHARGE(31) = 0.129571D0
+      SITE(32,1) =-3.404682D0
+      SITE(32,2) =-3.348290D0
+      CHARGE(32) = 0.129571D0
+      SITE(33,1) =-1.197347D0
+      SITE(33,2) =-4.622693D0
+      CHARGE(33) = 0.129571D0
+      SITE(34,1) = 1.197383D0
+      SITE(34,2) =-4.622681D0
+      CHARGE(34) = 0.129571D0
+      SITE(35,1) = 3.404682D0
+      SITE(35,2) =-3.34829D0
+      CHARGE(35) = 0.129571D0
+      SITE(36,1) = 4.602048D0
+      SITE(36,2) =-1.274393D0
+      CHARGE(36) = 0.129571D0
+
+      CWRCC  = 270363.D0 ! LJ coefficients in kJ/mol Angstrom**6 or Angstrom**12
+      CWRHH  = 12680.D0
+      CWRCH  = SQRT(CWRCC*CWRHH)
+      CWACC  = 1701.73D0
+      CWAHH  = 278.37D0
+      CWACH  = SQRT(CWACC*CWAHH)
+      CWECC  = 3.60D0
+      CWEHH  = 3.56D0
+      CWECH  = 0.5D0*(CWECC + CWEHH)
+      CCKJ   = 1389.354848D0
+
+      END SUBROUTINE DEFCORONN
+
+!     ----------------------------------------------------------------------------------------------
+
+      SUBROUTINE DEFPYRN(CHARGE, CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ)
+
+      USE COMMONS, ONLY: NRBSITES, SITE
+
+      IMPLICIT NONE
+
+      INTEGER :: J1
+      DOUBLE PRECISION :: CHARGE(NRBSITES), CWRCC, CWRHH, CWRCH, CWACC, CWAHH, CWACH, CWECC, CWEHH, CWECH, CCKJ
+
+      DO J1 = 1, NRBSITES
+         SITE(J1,3) = 0.0D0
+      ENDDO
+
+      SITE(1,1)   =-0.713299181D0
+      SITE(1,2)   = 0.0D0
+      CHARGE(1)   = 0.02921D0
+      SITE(2,1)   = 0.713299181D0
+      SITE(2,2)   = 0.0D0
+      CHARGE(2)   = 0.02921D0
+      SITE(3,1)   = 1.42908867D0
+      SITE(3,2)   = 1.236288231D0
+      CHARGE(3)   = 0.02997D0
+      SITE(4,1)   = 1.42908867D0
+      SITE(4,2)   =-1.236288231D0
+      CHARGE(4)   = 0.02997D0
+      SITE(5,1)   =-1.42908867D0
+      SITE(5,2)   =-1.236288231D0
+      CHARGE(5)   = 0.02997D0
+      SITE(6,1)   =-1.42908867D0
+      SITE(6,2)   = 1.236288231D0
+      CHARGE(6)   = 0.02997D0
+      SITE(7,1)   = 0.680790235D0
+      SITE(7,2)   = 2.463862501D0
+      CHARGE(7)   =-0.15289D0
+      SITE(8,1)   = 2.832978449D0
+      SITE(8,2)   = 1.210606201D0
+      CHARGE(8)   =-0.15784D0
+      SITE(9,1)   = 0.680790235D0
+      SITE(9,2)   =-2.463862501D0
+      CHARGE(9)   =-0.15289D0
+      SITE(10,1)  = 2.832978449D0
+      SITE(10,2)  =-1.210606201D0
+      CHARGE(10)  =-0.15784D0
+      SITE(11,1)  =-0.680790235D0
+      SITE(11,2)  =-2.463862501D0
+      CHARGE(11)  =-0.15289D0
+      SITE(12,1)  =-2.832978449D0
+      SITE(12,2)  =-1.210606201D0
+      CHARGE(12)  =-0.15784D0
+      SITE(13,1)  =-0.680790235D0
+      SITE(13,2)  = 2.463862501D0
+      CHARGE(13)  =-0.15289D0
+      SITE(14,1)  =-2.832978449D0
+      SITE(14,2)  = 1.210606201D0
+      CHARGE(14)  =-0.15784D0
+      SITE(15,1)  = 3.523945292D0
+      SITE(15,2)  = 0.0D0
+      CHARGE(15)  =-0.13695D0
+      SITE(16,1)  =-3.523945292D0
+      SITE(16,2)  = 0.0D0
+      CHARGE(16)  =-0.13695D0
+      SITE(17,1)  = 1.18000694D0
+      SITE(17,2)  = 3.315837663D0
+      CHARGE(17)  = 0.13384D0
+      SITE(18,1)  = 3.329533884D0
+      SITE(18,2)  = 2.064046619D0
+      CHARGE(18)  = 0.13425D0
+      SITE(19,1)  = 1.18000694D0
+      SITE(19,2)  =-3.315837663D0
+      CHARGE(19)  = 0.13384D0
+      SITE(20,1)  = 3.329533884D0
+      SITE(20,2)  =-2.064046619D0
+      CHARGE(20)  = 0.13425D0
+      SITE(21,1)  =-1.18000694D0
+      SITE(21,2)  =-3.315837663D0
+      CHARGE(21)  = 0.13384D0
+      SITE(22,1)  =-3.329533884D0
+      SITE(22,2)  =-2.064046619D0
+      CHARGE(22)  = 0.13425D0
+      SITE(23,1)  =-1.18000694D0
+      SITE(23,2)  = 3.315837663D0
+      CHARGE(23)  = 0.13384D0
+      SITE(24,1)  =-3.329533884D0
+      SITE(24,2)  = 2.064046619D0
+      CHARGE(24)  = 0.13425D0
+      SITE(25,1)  = 4.510637231D0
+      SITE(25,2)  = 0.0D0
+      CHARGE(25)  = 0.13308D0
+      SITE(26,1)  =-4.510637231D0
+      SITE(26,2)  = 0.0D0
+      CHARGE(26)  = 0.13308D0
+
+      CWRCC  = 270363.D0 ! LJ coefficients in kJ/mol Angstrom**6 or Angstrom**12
+      CWRHH  = 12680.D0
+      CWRCH  = SQRT(CWRCC*CWRHH)
+      CWACC  = 1701.73D0
+      CWAHH  = 278.37D0
+      CWACH  = SQRT(CWACC*CWAHH)
+      CWECC  = 3.60D0
+      CWEHH  = 3.56D0
+      CWECH  = 0.5D0*(CWECC + CWEHH)
+      CCKJ   = 1389.354848D0
+
+      END SUBROUTINE DEFPYRN

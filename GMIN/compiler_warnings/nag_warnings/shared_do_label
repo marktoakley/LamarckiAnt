@@ -1,0 +1,17 @@
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 2613: 180 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/GMIN/source/dlsode.f, line 2758: 470 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/GMIN/source/Natb.f, line 160: 5500 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/GMIN/source/Natb.f, line 489: 2585 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/GMIN/source/Natb.f, line 499: 2586 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/GMIN/source/ptgrp.f, line 1525: 20 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/GMIN/source/ptgrp.f, line 1627: 30 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/GMIN/source/ptgrp.f, line 1706: 170 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/GMIN/source/ptgrp.f, line 1859: 10 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/AMBER/src/sander/new_stuff.f, line 61: 20 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/AMBER/src/sander/new_stuff.f, line 69: 120 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/AMBER/src/sander/new_stuff.f, line 377: 100 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/AMBER/src/sander/new_stuff.f, line 1575: 900 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/AMBER/src/sander/matinv.f, line 115: 20 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/AMBER/src/sander/matinv.f, line 164: 65 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/AMBER/src/sander/resdis.f, line 38: 100 is a shared DO termination label
+Obsolescent: /scratch/khs26/svn/AMBER/src/sander/ew_recip_reg.f, line 677: 100 is a shared DO termination label

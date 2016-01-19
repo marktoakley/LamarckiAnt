@@ -1,0 +1,120 @@
+#!/bin/bash
+  
+export shd="`dirname $(readlink -f $0)`"
+export this_script=` basename $0 `
+export wg_dir="$shd/../../"
+
+progs=( g gmin o optim ps pathsample ds disconnect )
+
+vim_opts="-n -p"
+#vim_opts=$vim_opts ' +"set fdm=marker"'
+v="vim $vim_opts"
+
+h_kw(){
+#{{{
+
+kwd=`echo $2 | awk '{ print toupper($0) }'` 
+p="$1"
+cf $p tex pkc $kwd
+#}}}
+}
+
+display_help(){
+# {{{
+cat << EOF
+=============================================
+SCRIPT NAME: $this_script 
+PURPOSE: display help on different topics 
+USAGE: $this_script [ OPTIONS ] 
+	OPTIONS:
+
+		vm		view myself
+
+				display the help message
+
+		kw PROGRAM KEYWORD	display help on KEYWORD for PROGRAM (case-insensitive)
+
+				PROGRAMS:
+
+					SHORT NAME 	LONGER NAME
+
+					g 		gmin 
+					o 		optim 
+					p 		pathsample 
+					ds 		disconnectionDPS 
+
+					a		for all programs above		
+
+		man 		output as man page
+
+USAGE EXAMPLES:
+	
+	h man kw gmin pull - display info about keyword PULL for GMIN in man-page format.
+				
+=============================================
+EOF
+# }}}
+}
+
+[ -z "$*" ] && display_help 
+
+# main part 
+# {{{
+
+script_opts=( $* )
+
+wg_progs=( GMIN OPTIM PATHSAMPLE DISCONNECT )
+mpath=""
+
+set_man_path(){
+
+#man_cmd=man
+for p in ${wg_progs[@]}; do              
+	export MANPATH="$MANPATH:$wg_dir/dx/$p/man"
+done
+
+}
+
+set_man_path
+
+while [ ! -z "$1" ]; do
+  	case "$1" in
+	  	vm) $v $0 ;;
+	  	kw) #{{{	
+			option=$1
+			[ ! -z $2 ] && program=$2 && [ ! -z $3 ] && keyword=$3	
+			
+			if [ -z $program ]; then 
+				echo "No program provided; exiting."
+				exit
+			fi
+			if [ -z $keyword ]; then 
+			 	  echo "No keyword provided; exiting." 
+				  exit 
+			fi
+			found_program=false
+			shift; shift
+			for p in ${progs[@]}; do 
+					if [  "$program"=="$p"  ];  then
+					 	 found_program=true 
+					fi
+		        done
+			if ( [ $found_program ] && [ ! -z $keyword ] ); then
+		       			h_$option $program $keyword | less
+			      else
+cat << EOF
+Error: No program with the name provided!  
+		Permitted values are:
+			${progs[@]}
+EOF
+exit 1
+			fi
+		;;
+		      #}}}	
+		man) shift; man $* ;;
+	esac
+	shift
+done
+
+# }}}
+

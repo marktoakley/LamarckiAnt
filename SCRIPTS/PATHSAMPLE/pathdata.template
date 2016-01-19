@@ -1,0 +1,15 @@
+RANROT 1000
+NATOMS          75
+PERMDIST
+SYSTEM          AX
+CONNECTIONS     1
+ETOL           1.0D-7
+GEOMDIFFTOL    0.1
+ITOL           0.1D0
+SEED           1
+DIRECTION      AB
+EXEC           /home/wales/bin/OPTIM
+
+CYCLES 0
+CPUS 1
+TEMPERATURE     0.1
