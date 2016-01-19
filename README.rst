@@ -1,6 +1,6 @@
 LamarckiAnt
 -----------
-An implementation of the Lanarckian Ant Colony Optimisation method as
+An implementation of the Lamarckian Ant Colony Optimisation method as
 used in:
 
 Protein Structure Optimization with a "Lamarckian" Ant Colony Algorithm
@@ -9,4 +9,4 @@ IEEE/ACM Transactions on Computational Biology and Bioinformatics, 10, 2013, 154
 http://dx.doi.org/10.1109/tcbb.2013.125
 
 This is a fork of the GMIN global optimisation program. Download the
-original (and more energy landscape software) at http://http://www-wales.ch.cam.ac.uk/software
+original (and more energy landscape software) at http://www-wales.ch.cam.ac.uk/software
