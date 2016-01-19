@@ -13,3 +13,13 @@ GMIN/source/porfuncs.f90
 GMIN/source/tryexchange.f90
 GMIN/source/tryexchange_independence.f90
 
+DOC/*.aux
+DOC/*.bbl
+DOC/*.blg
+DOC/*.dvi
+DOC/*.log
+DOC/*.out
+DOC/*.pdf
+DOC/*.ps
+DOC/*.toc
+

@@ -250,6 +250,21 @@ stagnates.
 The {\ it GA} keyword has been tested for optimisation of BLN model proteins,
 single-component clusters and binary clusters.
 
+\subsection{Ant Colony Optimisation}
+\label{sec:GA}
+The {\it ANTALGORITHM} keyword starts optimisation using the LamarckiAnt
+algorithm.\cite{Oakley2013Protein} This method uses ant colony optimisation (ACO)
+to generate a number of candidate structures. These are then minimised using
+LBFGS (or any other minimisation method in GMIN) before proceeding to the the
+next round of ACO.
+
+The keywords {\it ANTGAMMA}, {\it ANTTRAILWIDTH} and {\it ANTTRAILPERS}
+can be used to modify the behaviour of the LamarckiAnt Algorithm.
+
+This method was developed was implemented for the BLN model proteins and is
+unlikely to produce meaningful results for any other systems without further
+development of the code.
+
 \section{The {\tt data} file}
 
 Input is keyword driven with sensible defaults in most cases. 
@@ -328,6 +343,25 @@ instead.
 
 \item {\it ANGSTROM\/}: specifies coordinates in \AA ngstrom for the {\it FRAUSI\/}
 potential.
+
+\item {\it ANTALGORITHM nants maxgen}: specifies optimisation using the LamarckiAnt algorithm
+(see \S \ref{sec:ACO}). The {\it nants} parameter specifies the number of solutions
+generated in each generation of the algorithm ({\it nants}=50 gave good results
+in our test calculations). The parameter {\it maxgen} specifies the maximum number
+of generations to run before the search ends.
+
+\item {\it ANTGAMMA gamma}: The parameter {\it gamma} is the learning rate constant.
+Larger values of gamma increase the weighting of higher-energy structures when
+generating pheromone trails. The default value is 3.0.
+
+\item {\it ANTTRAILWIDTH width DEG}: The parameter {\it width} specifies the
+width of the pheromone trail left by the ants. Usually, this value is supplied in
+radians. If the optional argument "DEG" is supplied, {\it width} specifies a
+value in degrees. The default value is 2.5 degrees (0.0436... radians).
+
+\item {\it ANTTRAILPERS persistence}: The parameter {\it persistence} specifies the
+persistence of the pheromone trail and takes a value from 0 to 1. Higher values
+correspond to slower dissipation of the pheromone trail. The default calue is 0.1.
 
 \item {\it ARGON\/}: introduces a diatomics-in-molecules calculation for
 a neutral, cationic or electronically excited argon cluster. See also
