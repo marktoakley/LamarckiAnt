@@ -158,6 +158,7 @@ SUBROUTINE ANT_SETUP()
    WRITE(MYUNIT,'(A,F8.3)') "ANT> Gamma:",ANT_GAMMA
    WRITE(MYUNIT,'(A,F8.3)') "ANT> Trail width:",ANT_TRAIL_WIDTH
    WRITE(MYUNIT,'(A,F8.3)') "ANT> Trail persistence:",ANT_TRAIL_PERSISTENCE
+   WRITE(MYUNIT,'(A,F8.3)') "ANT> Trail best structure rate:",ANT_THETA
    WRITE(MYUNIT,'(A,F8.3)') "ANT> Visibility constant:",ANT_BETA
    RETURN
 END

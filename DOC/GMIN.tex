@@ -350,6 +350,13 @@ generated in each generation of the algorithm ({\it nants}=50 gave good results
 in our test calculations). The parameter {\it maxgen} specifies the maximum number
 of generations to run before the search ends.
 
+\item {\it ANTBEST g}: Includes the current best structure in the trail update.
+The parameter {\it g} determines the fraction of the trail provided by the best
+structure. The default value is 0.
+
+\item {\it ANTDUMP\/}: Print the pheromone trails to files after every generation.
+If the search takes a long time to complete, this generates a lot of files.
+
 \item {\it ANTGAMMA gamma}: The parameter {\it gamma} is the learning rate constant.
 Larger values of gamma increase the weighting of higher-energy structures when
 generating pheromone trails. The default value is 3.0.

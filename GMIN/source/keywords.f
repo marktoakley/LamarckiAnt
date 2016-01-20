@@ -3396,8 +3396,16 @@ c
          CALL READI(MYGA_NSTRUC) !Number of ants
          CALL READI(MYGA_GENS)   !Number of generations
          ACOT=.TRUE.
+! Use global best structure in trail updates
+      ELSE IF (WORD.EQ.'ANTBEST') THEN
+         CALL READF(ANT_THETA)
+! Print pheromone trails to files
+      ELSE IF (WORD.EQ.'ANTDUMP') THEN
+         ANT_DUMP=.TRUE.
+! Learning rate constant
       ELSE IF (WORD.EQ.'ANTGAMMA') THEN
          CALL READF(ANT_GAMMA)
+! Pheromone trail width
       ELSE IF (WORD.EQ.'ANTTRAILWIDTH') THEN
          IF (NITEMS.GT.2) THEN
             CALL READF(ANT_TRAIL_WIDTH)
@@ -3407,8 +3415,11 @@ c
                ANT_TRAIL_WIDTH=ANT_TRAIL_WIDTH*0.0174533
             ENDIF
          ENDIF
+! Persistence of pheromone trail
       ELSE IF (WORD.EQ.'ANTTRAILPERS') THEN
          CALL READF(ANT_TRAIL_PERSISTENCE)
+! Visibility
+! Test feature. Don't use this, it slows down the search.
       ELSE IF (WORD.EQ.'ANTVISIBILITY') THEN
          CALL READF(ANT_BETA)
 !
