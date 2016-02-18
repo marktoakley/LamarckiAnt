@@ -14,4 +14,4 @@ If you publish any results using this software please cite::
 and::
  David J. Wales
  GMIN: A program for ﬁnding global minima and calculating thermodynamic properties from basin-sampling.
- http:// www-wales.ch.cam.ac.uk/GMIN/
+ http://www-wales.ch.cam.ac.uk/GMIN/
