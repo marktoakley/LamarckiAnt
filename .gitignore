@@ -2,7 +2,7 @@
 *.a
 *.mod
 
-GMIN/bin/
+GMIN/bin/GMIN
 GMIN/source/bhpt.f90
 GMIN/source/bspt.f
 GMIN/source/bspt_one_atom.f
